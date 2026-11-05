@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --paper: #f3f1eb;
+  --ink: #11110f;
+  --line: rgba(17, 17, 15, 0.18);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 7rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Archivo Variable", Arial, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+a,
+button,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a {
+  touch-action: manipulation;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid #2447d8;
+  outline-offset: 4px;
+}
+
+img {
+  -webkit-user-drag: none;
+}
+
+@layer components {
+  .frame {
+    @apply mx-auto w-full max-w-frame px-5 sm:px-8 lg:px-12;
+  }
+
+  .eyebrow {
+    @apply text-[10px] font-semibold uppercase tracking-[0.22em] sm:text-[11px];
+  }
+
+  .display-title {
+    @apply text-[clamp(3.6rem,9vw,9.5rem)] font-black uppercase leading-[0.82] tracking-tightest;
+  }
+
+  .section-title {
+    @apply text-[clamp(2.6rem,5.4vw,6rem)] font-semibold uppercase leading-[0.9] tracking-[-0.055em];
+  }
+
+  .button-dark {
+    @apply inline-flex min-h-12 items-center justify-center gap-3 border border-ink bg-ink px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-chalk transition-colors duration-300 hover:bg-transparent hover:text-ink disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .button-light {
+    @apply inline-flex min-h-12 items-center justify-center gap-3 border border-ink bg-transparent px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-ink transition-colors duration-300 hover:bg-ink hover:text-chalk disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .text-link {
+    @apply inline-flex items-center gap-3 border-b border-current pb-1 text-[11px] font-semibold uppercase tracking-[0.15em] transition-opacity hover:opacity-55;
+  }
+
+  .field-label {
+    @apply mb-2 block text-[11px] font-semibold uppercase tracking-[0.12em];
+  }
+
+  .text-field {
+    @apply min-h-12 w-full rounded-none border border-ink/25 bg-chalk px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-muted focus:border-ink disabled:opacity-60;
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
