@@ -3,8 +3,10 @@ import { storeConfig } from "@/config/store";
 import { developerCreditUrl, safeHttpUrl } from "@/lib/credit";
 
 describe("developer credit", () => {
-  it("stays plain text until a real URL is configured", () => {
-    expect(developerCreditUrl(storeConfig.credit.url)).toBeNull();
+  it("resolves the configured WEBPI website URL", () => {
+    expect(developerCreditUrl(storeConfig.credit.url)).toBe(
+      "https://webpi-lovat.vercel.app/",
+    );
     expect(developerCreditUrl("")).toBeNull();
     expect(developerCreditUrl("   ")).toBeNull();
     expect(developerCreditUrl(null)).toBeNull();
