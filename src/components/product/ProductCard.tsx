@@ -26,7 +26,11 @@ export function ProductCard({ product, priority = false }: { product: Product; p
         <div className="pt-2">
           <h3 className="text-[12px] font-semibold uppercase leading-snug tracking-[-0.015em] sm:text-sm">{product.name}</h3>
           <p className="mt-1.5 text-[9px] uppercase tracking-[0.1em] text-muted sm:text-[10px]">{product.category}</p>
-          <p className="mt-2 text-xs font-medium tabular-nums sm:text-sm">{formatINR(product.price)}</p>
+          <p className="mt-2 text-xs font-medium tabular-nums sm:text-sm">
+            <span className="line-through text-muted">{formatINR(1200)}</span>{" "}
+            <span className="text-ink font-bold">{formatINR(600)}</span>{" "}
+            <span className="ml-1 px-1.5 py-0.5 bg-red-500/10 text-red-500 text-[7px] font-bold uppercase tracking-wider rounded">50% OFF</span>
+          </p>
         </div>
       </Link>
       <div className="mt-3 flex flex-wrap items-center gap-2" aria-label={`Pictured colours: ${product.availableColors.map((color) => color.name).join(", ")}`}>

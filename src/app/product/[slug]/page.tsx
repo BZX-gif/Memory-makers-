@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
   return {
     title: product.name,
-    description: `${product.description} ${formatINR(product.price)}. Choose your options and send an order request on WhatsApp.`,
+    description: `${product.description} ₹600 (Original ₹1,200 — 50% OFF). Choose your options and send an order request on WhatsApp.`,
     openGraph: {
       title: `${product.name} — MEMORY MAKERS`,
       description: product.description,

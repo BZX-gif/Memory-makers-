@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { QuantityControl } from "@/components/ui/QuantityControl";
 import { useCart } from "@/context/CartContext";
-import { calculateLineTotal, formatINR } from "@/lib/utils";
+import { calculateLineTotal, formatINR, calculateCartDiscount } from "@/lib/utils";
 
 export function CartView() {
   const { items, itemCount, subtotal, hydrated, removeItem, updateQuantity, clearCart } = useCart();
@@ -34,6 +34,10 @@ export function CartView() {
     );
   }
 
+  // Calculate discount
+  const discount = calculateCartDiscount(items);
+  const finalTotal = subtotal !== null ? subtotal - discount : null;
+
   return (
     <div className="frame py-12 sm:py-16">
       <header className="flex flex-col justify-between gap-5 border-b border-ink/20 pb-8 sm:flex-row sm:items-end">
@@ -59,7 +63,7 @@ export function CartView() {
                       <dl className="mt-3 space-y-1.5 text-[10px] uppercase tracking-[0.08em] text-muted sm:text-[11px]">
                         <div className="flex gap-2"><dt>Requested size:</dt><dd className="text-ink">{item.size}</dd></div>
                         <div className="flex items-center gap-2"><dt>Colour:</dt><dd className="flex items-center gap-1.5 text-ink"><span className="h-2.5 w-2.5 rounded-full border border-ink/20" style={{ backgroundColor: item.color.hex }} />{item.color.name}</dd></div>
-                        <div className="flex gap-2"><dt>Unit price:</dt><dd className="tabular-nums text-ink">{formatINR(item.price)}</dd></div>
+                        <div className="flex gap-2"><dt>Unit price:</dt><dd className="tabular-nums text-ink">{formatINR(600)}</dd></div>
                       </dl>
                     </div>
                     <p className="shrink-0 text-xs font-semibold tabular-nums sm:text-base">{formatINR(calculateLineTotal(item), "To confirm")}</p>
@@ -81,11 +85,17 @@ export function CartView() {
           <h2 id="summary-heading" className="text-xl font-semibold uppercase tracking-[-0.035em]">Order summary</h2>
           <dl className="mt-7 space-y-4 border-b border-ink/15 pb-6 text-xs">
             <div className="flex justify-between gap-4"><dt className="text-muted">Product subtotal</dt><dd className="font-medium tabular-nums">{formatINR(subtotal, "To confirm")}</dd></div>
+            {discount > 0 && (
+              <div className="flex justify-between gap-4">
+                <dt className="text-muted">Buy 4, Get 1 Free discount</dt>
+                <dd className="font-medium tabular-nums text-red-500">-{formatINR(discount)}</dd>
+              </div>
+            )}
             <div className="flex justify-between gap-4"><dt className="text-muted">Shipping</dt><dd className="text-right">Confirmed on WhatsApp</dd></div>
           </dl>
           <div className="flex items-end justify-between gap-4 py-6">
             <div><p className="text-sm font-semibold uppercase">Product total</p><p className="mt-1 text-[9px] text-muted">Before any confirmed delivery charge</p></div>
-            <p className="text-xl font-semibold tabular-nums">{formatINR(subtotal, "To confirm")}</p>
+            <p className="text-xl font-semibold tabular-nums">{formatINR(finalTotal, "To confirm")}</p>
           </div>
           {subtotal === null && <p className="mb-5 text-xs leading-6 text-muted">One or more product prices are awaiting confirmation. No monetary total is available yet.</p>}
           <Link href="/checkout" className="button-dark w-full">Proceed to checkout <ArrowRight size={15} /></Link>

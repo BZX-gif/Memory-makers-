@@ -69,7 +69,11 @@ export function ProductPurchase({ product, color, onColorChange }: {
         </p>
       </div>
       <h1 className="mt-5 text-[clamp(2.3rem,4vw,4.5rem)] font-semibold uppercase leading-[0.88] tracking-[-0.06em]">{product.name}</h1>
-      <p className="mt-5 text-lg font-medium tabular-nums">{formatINR(product.price)}</p>
+      <p className="mt-5 text-lg font-medium tabular-nums">
+        <span className="line-through text-muted">{formatINR(1200)}</span>{" "}
+        <span className="text-ink font-bold">{formatINR(600)}</span>{" "}
+        <span className="ml-1 px-1.5 py-0.5 bg-red-500/10 text-red-500 text-[10px] font-bold uppercase tracking-wider rounded">50% OFF</span>
+      </p>
       {product.name.startsWith("Sample ") && <p className="mt-2 text-[10px] uppercase tracking-[0.1em] text-muted">Editable descriptive label / Official name to confirm</p>}
       <p className="mt-6 max-w-lg text-sm leading-7 text-muted">{product.description}</p>
       {(product.price === null || product.inStock === null) && (

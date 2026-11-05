@@ -9,7 +9,7 @@ import { FormField } from "@/components/checkout/FormField";
 import { hasConfiguredWhatsApp, storeConfig } from "@/config/store";
 import { useCart } from "@/context/CartContext";
 import { saveOrderDraft } from "@/lib/order";
-import { calculateLineTotal, calculateSubtotal, formatINR } from "@/lib/utils";
+import { calculateLineTotal, calculateSubtotal, formatINR, calculateCartDiscount } from "@/lib/utils";
 import { hasCheckoutErrors, validateCheckout } from "@/lib/validation";
 import { buildWhatsAppMessage, buildWhatsAppUrl, generateOrderReference } from "@/lib/whatsapp";
 import type { CheckoutCustomer, CheckoutErrors, OrderDraft } from "@/types";
@@ -34,6 +34,9 @@ export function CheckoutView() {
   const isBuyNow = searchParams.get("mode") === "buy-now";
   const checkoutItems = useMemo(() => (isBuyNow ? (buyNowItem ? [buyNowItem] : []) : items), [buyNowItem, isBuyNow, items]);
   const subtotal = calculateSubtotal(checkoutItems);
+  // Calculate discount
+  const discount = calculateCartDiscount(checkoutItems);
+  const finalTotal = subtotal !== null ? subtotal - discount : null;
 
   const updateField = (field: keyof CheckoutCustomer, value: string) => {
     setCustomer((current) => ({ ...current, [field]: value }));
@@ -84,7 +87,7 @@ export function CheckoutView() {
       customer: cleanCustomer,
       items: checkoutItems,
       subtotal,
-      total: subtotal,
+      total: finalTotal,
       message,
     };
 
@@ -212,7 +215,7 @@ export function CheckoutView() {
                 <div className="relative aspect-[3/4] bg-stone"><Image src={item.image} alt="" fill sizes="64px" className="object-contain" /></div>
                 <div className="min-w-0">
                   <h3 className="text-xs font-semibold uppercase">{item.name}</h3>
-                  <p className="mt-2 text-[10px] leading-relaxed text-muted">Requested size {item.size} / {item.color.name}<br />Qty {item.quantity} × {formatINR(item.price)}</p>
+                  <p className="mt-2 text-[10px] leading-relaxed text-muted">Requested size {item.size} / {item.color.name}<br />Qty {item.quantity} × {formatINR(600)}</p>
                 </div>
                 <p className="text-xs font-medium tabular-nums">{formatINR(calculateLineTotal(item), "To confirm")}</p>
               </li>
@@ -220,11 +223,17 @@ export function CheckoutView() {
           </ul>
           <dl className="space-y-4 border-t border-ink/15 pt-5 text-xs">
             <div className="flex justify-between"><dt className="text-muted">Subtotal</dt><dd className="tabular-nums">{formatINR(subtotal, "To confirm")}</dd></div>
+            {discount > 0 && (
+              <div className="flex justify-between">
+                <dt className="text-muted">Buy 4, Get 1 Free discount</dt>
+                <dd className="tabular-nums text-red-500">-{formatINR(discount)}</dd>
+              </div>
+            )}
             <div className="flex justify-between gap-3"><dt className="text-muted">Shipping</dt><dd className="text-right">Confirmed on WhatsApp</dd></div>
           </dl>
           <div className="mt-5 flex items-end justify-between border-t border-ink/20 pt-5">
             <div><p className="text-sm font-semibold uppercase">Product total</p><p className="mt-1 text-[9px] text-muted">Delivery not included unless confirmed</p></div>
-            <p className="text-xl font-semibold tabular-nums">{formatINR(subtotal, "To confirm")}</p>
+            <p className="text-xl font-semibold tabular-nums">{formatINR(finalTotal, "To confirm")}</p>
           </div>
           {subtotal === null && <p className="mt-5 text-xs leading-6 text-muted">Product prices are awaiting confirmation, so no monetary total is quoted. Requested sizes, pictured colours and stock must also be confirmed by the team.</p>}
           {!isBuyNow && <Link href="/cart" className="mt-5 inline-block text-[10px] uppercase tracking-[0.1em] text-muted underline underline-offset-4">Edit bag</Link>}
