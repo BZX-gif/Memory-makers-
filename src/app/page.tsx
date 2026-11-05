@@ -31,7 +31,7 @@ export default function HomePage() {
           ))}
         </div>
         <Link href="/shop" className="button-light mt-10 w-full sm:hidden">Explore all pieces <ArrowRight size={15} /></Link>
-        <p className="mt-10 text-[9px] uppercase leading-relaxed tracking-[0.13em] text-muted">Supplied product photographs · Editable sample labels · Prices, sizes and stock to confirm.</p>
+        <p className="mt-10 text-[9px] uppercase leading-relaxed tracking-[0.13em] text-muted">₹600 per tee · MRP ₹1,200 · Free shipping · 4 tees unlock ₹600 off</p>
       </section>
 
       <BrandStatement />

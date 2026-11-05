@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ProductDetails } from "@/components/product/ProductDetails";
 import { getProductBySlug, getRelatedProducts, products } from "@/data/products";
+import { ORIGINAL_UNIT_PRICE, UNIT_PRICE } from "@/lib/pricing";
 import { formatINR } from "@/lib/utils";
 
 interface ProductPageProps {
@@ -21,7 +22,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
   return {
     title: product.name,
-    description: `${product.description} ₹600 (Original ₹1,200 — 50% OFF). Choose your options and send an order request on WhatsApp.`,
+    description: `${product.description} ${formatINR(UNIT_PRICE)} (MRP ${formatINR(ORIGINAL_UNIT_PRICE)}). Free shipping on every order. Choose your size and colour, then send your order on WhatsApp.`,
     openGraph: {
       title: `${product.name} — MEMORY MAKERS`,
       description: product.description,

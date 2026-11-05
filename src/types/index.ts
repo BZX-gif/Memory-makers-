@@ -20,8 +20,10 @@ export interface Product {
   /** Use an explicitly marked sample label until the owner supplies a name. */
   name: string;
   description: string;
-  /** null means awaiting a quote, not free or zero-priced. */
+  /** Selling price in INR. Every tee is ₹600; use the pricing module for maths. */
   price: number | null;
+  /** Original MRP shown struck through (₹1,200). Display only, never a total. */
+  compareAtPrice: number | null;
   images: string[];
   category: ProductCategory;
   /** Empty until verified. The UI then offers labelled size requests instead. */
@@ -31,6 +33,13 @@ export interface Product {
   featured: boolean;
   /** null = unverified (requests allowed); false = unavailable; true = confirmed. */
   inStock: boolean | null;
+  /**
+   * Owner-configured units available for this product. This is a manual
+   * catalogue limit, not live warehouse inventory. null = not tracked.
+   */
+  stock: number | null;
+  /** Optional scarcity label override, e.g. "LIMITED DROP" or "SELLING FAST". */
+  stockLabel?: string | null;
   details: string[];
 }
 
@@ -39,7 +48,11 @@ export interface CartItem {
   productId: string;
   slug: string;
   name: string;
-  price: number | null;
+  /** Persisted for the order record; totals always use the pricing module. */
+  price: number;
+  compareAtPrice: number;
+  /** Maximum quantity of this variant allowed by the configured stock. */
+  maxQuantity: number;
   image: string;
   size: string;
   color: ProductColor;
@@ -64,9 +77,10 @@ export interface OrderDraft {
   source: "cart" | "buy-now";
   customer: CheckoutCustomer;
   items: CartItem[];
-  /** Unknown if any item still needs a quote. Never a partial monetary total. */
-  subtotal: number | null;
-  /** Final payable amount after Buy 4, Get 1 Free discount */
-  total: number | null;
+  subtotal: number;
+  /** Exactly ₹600 when the order qualified, otherwise ₹0. */
+  bundleDiscount: number;
+  shipping: number;
+  total: number;
   message: string;
 }

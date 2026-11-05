@@ -105,7 +105,7 @@ export function ShopExperience() {
       </section>
 
       <section className="frame py-10 sm:py-14" aria-live="polite" aria-busy="false">
-        {(sort === "price-asc" || sort === "price-desc") && <p className="mb-6 text-xs leading-6 text-muted">Confirmed prices sort first. Pieces awaiting a price stay at the end in label order.</p>}
+        {(sort === "price-asc" || sort === "price-desc") && <p className="mb-6 text-xs leading-6 text-muted">Every piece is ₹600 (MRP ₹1,200), so price sorting falls back to the label order.</p>}
         <div className="mb-8 flex items-center justify-between gap-5">
           <p className="eyebrow text-muted">{visibleProducts.length} {visibleProducts.length === 1 ? "piece" : "pieces"} {category !== "All" && `/ ${category}`}</p>
           {(query || category !== "All" || availableOnly || sort !== "featured") && (

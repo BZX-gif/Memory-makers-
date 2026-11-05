@@ -1,19 +1,25 @@
 "use client";
 
 import { Minus, Plus } from "lucide-react";
+import { MAX_LINE_QUANTITY } from "@/lib/pricing";
 
 export function QuantityControl({
   quantity,
   onChange,
   label = "Quantity",
   compact = false,
+  max = MAX_LINE_QUANTITY,
 }: {
   quantity: number;
   onChange: (quantity: number) => void;
   label?: string;
   compact?: boolean;
+  /** Owner-configured stock ceiling; the plus button stops here. */
+  max?: number;
 }) {
   const buttonClass = compact ? "h-9 w-9" : "h-12 w-12";
+  const ceiling = Math.max(1, Math.min(MAX_LINE_QUANTITY, Math.floor(max) || MAX_LINE_QUANTITY));
+
   return (
     <div
       className={`inline-flex items-center border border-ink/25 ${compact ? "h-9" : "h-12"}`}
@@ -39,7 +45,7 @@ export function QuantityControl({
         type="button"
         className={`${buttonClass} inline-flex items-center justify-center transition-colors hover:bg-ink hover:text-chalk disabled:pointer-events-none disabled:opacity-30`}
         onClick={() => onChange(quantity + 1)}
-        disabled={quantity >= 10}
+        disabled={quantity >= ceiling}
         aria-label={`Increase ${label.toLowerCase()}`}
       >
         <Plus size={14} strokeWidth={1.7} aria-hidden="true" />

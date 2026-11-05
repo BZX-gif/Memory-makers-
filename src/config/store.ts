@@ -24,8 +24,17 @@ export const storeConfig = {
     instagram: "https://www.instagram.com/mm_weareble/",
   },
   shipping: {
+    // Store policy: shipping is free on every order.
+    free: true,
+    label: "FREE",
     information:
-      "Delivery availability and any shipping charge are confirmed directly on WhatsApp before an order is accepted.",
+      "Shipping is free on every order. Add four or more tees and ₹600 is taken off the order once. Delivery timing is confirmed directly on WhatsApp before an order is accepted.",
+  },
+  offers: {
+    unitPrice: 600,
+    originalUnitPrice: 1200,
+    bundleQuantity: 4,
+    bundleDiscount: 600,
   },
 } as const;
 

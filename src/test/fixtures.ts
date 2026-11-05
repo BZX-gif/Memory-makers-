@@ -1,16 +1,19 @@
 import { products } from "@/data/products";
 import { createCartItem } from "@/lib/cart";
-import { calculateSubtotal } from "@/lib/utils";
+import { calculateOrderTotals } from "@/lib/pricing";
 import { buildWhatsAppMessage } from "@/lib/whatsapp";
 import type { CartItem, CheckoutCustomer, OrderDraft, Product } from "@/types";
 
-// Keep pending-state regression cases stable when the owner fills real prices/sizes.
-export const picturedProduct: Product = { ...products[0], price: null, inStock: null, availableSizes: [] };
-export const multiColorProduct: Product = { ...products.find((product) => product.id === "mm-real-07")!, price: null, inStock: null, availableSizes: [] };
+/** Real catalogue records, used as-is so tests exercise the shipped pricing. */
+export const picturedProduct: Product = products[0];
+export const multiColorProduct: Product = products.find((product) => product.id === "mm-real-07")!;
+export const lowStockProduct: Product = { ...products[2], stock: 5 };
+export const untrackedStockProduct: Product = { ...products[1], stock: null, stockLabel: null };
+export const soldOutProduct: Product = { ...products[1], inStock: false };
 
-/** Test-only numbers/stock; never imported by storefront code or live inventory. */
-export const pricedProduct: Product = { ...picturedProduct, price: 1200, inStock: true, availableSizes: ["M", "L", "XL"] };
-export const unavailableProduct: Product = { ...multiColorProduct, inStock: false };
+/** Kept for older regression cases; pricing is now the same for every tee. */
+export const pricedProduct: Product = { ...picturedProduct, availableSizes: ["M", "L", "XL"] };
+export const unavailableProduct: Product = soldOutProduct;
 
 export const testCustomer: CheckoutCustomer = {
   fullName: "Test Customer",
@@ -34,17 +37,21 @@ export function memoryStorage(initial: Record<string, string> = {}): Storage {
   };
 }
 
-export function testOrderDraft(items: CartItem[] = [createCartItem(picturedProduct, "M", picturedProduct.availableColors[0])!]): OrderDraft {
+export function testOrderDraft(
+  items: CartItem[] = [createCartItem(picturedProduct, "M", picturedProduct.availableColors[0])!],
+): OrderDraft {
   const reference = "MM-ABC234";
-  const subtotal = calculateSubtotal(items);
+  const totals = calculateOrderTotals(items);
   return {
     reference,
     createdAt: "2026-11-05T00:00:00.000Z",
     source: "cart",
     customer: testCustomer,
     items,
-    subtotal,
-    total: subtotal,
+    subtotal: totals.subtotal,
+    bundleDiscount: totals.bundleDiscount,
+    shipping: totals.shipping,
+    total: totals.total,
     message: buildWhatsAppMessage({ reference, customer: testCustomer, items }),
   };
 }

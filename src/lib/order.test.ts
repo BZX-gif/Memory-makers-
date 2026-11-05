@@ -1,43 +1,79 @@
 import { describe, expect, it } from "vitest";
 import { createCartItem, ORDER_STORAGE_PREFIX } from "@/lib/cart";
 import { readOrderDraft, saveOrderDraft } from "@/lib/order";
-import { memoryStorage, multiColorProduct, pricedProduct, testOrderDraft } from "@/test/fixtures";
+import { buildWhatsAppMessage } from "@/lib/whatsapp";
+import { memoryStorage, multiColorProduct, picturedProduct, testCustomer, testOrderDraft } from "@/test/fixtures";
 import type { OrderDraft } from "@/types";
 
 function readPayload(payload: unknown) {
   const reference = "MM-ABC234";
-  return readOrderDraft(memoryStorage({ [`${ORDER_STORAGE_PREFIX}${reference}`]: JSON.stringify(payload) }), reference);
+  return readOrderDraft(
+    memoryStorage({ [`${ORDER_STORAGE_PREFIX}${reference}`]: JSON.stringify(payload) }),
+    reference,
+  );
 }
 
 describe("browser-local order handoff drafts", () => {
-  it("round-trips unpriced requests without rejecting null totals", () => {
+  it("round-trips a priced order with its shared totals", () => {
     const storage = memoryStorage();
     const draft = testOrderDraft();
     expect(saveOrderDraft(storage, draft)).toBe(true);
     expect(readOrderDraft(storage, draft.reference)).toEqual(draft);
-    expect(draft.total).toBeNull();
+    expect(draft).toMatchObject({ subtotal: 600, bundleDiscount: 0, shipping: 0, total: 600 });
   });
 
-  it("retains numeric totals for a fully priced historical draft", () => {
-    const draft = testOrderDraft([createCartItem(pricedProduct, "L", pricedProduct.availableColors[0], 2)!]);
-    expect(draft.total).toBe(2400);
+  it("stores one ₹600 discount for a four-tee order", () => {
+    const item = createCartItem(picturedProduct, "L", picturedProduct.availableColors[0], 4)!;
+    const draft = testOrderDraft([item]);
+    expect(draft).toMatchObject({ subtotal: 2400, bundleDiscount: 600, shipping: 0, total: 1800 });
     expect(readPayload(draft)).toEqual(draft);
+    expect(draft.message).toContain("FINAL AMOUNT PAYABLE: ₹1,800");
   });
 
-  it("supports mixed-price requests and independent Buy Now handoffs", () => {
-    const priced = createCartItem(pricedProduct, "M", pricedProduct.availableColors[0])!;
-    const unpriced = createCartItem(multiColorProduct, "L", multiColorProduct.availableColors[1], 2)!;
-    const draft: OrderDraft = { ...testOrderDraft([priced, unpriced]), source: "buy-now" };
-    expect(readPayload(draft)?.total).toBeNull();
-    expect(readPayload(draft)?.items[1].image).toBe(multiColorProduct.images[1]);
+  it("supports independent Buy Now handoffs with their own totals", () => {
+    const item = createCartItem(multiColorProduct, "L", multiColorProduct.availableColors[1], 2)!;
+    const draft: OrderDraft = { ...testOrderDraft([item]), source: "buy-now" };
+    expect(readPayload(draft)?.total).toBe(1200);
+    expect(readPayload(draft)?.items[0].image).toBe(multiColorProduct.images[1]);
     expect(readPayload(draft)?.source).toBe("buy-now");
   });
 
-  it("rejects a fake zero or partial total for an unpriced request", () => {
+  it("allows the bundle discount to disappear when the order drops below four", () => {
+    const four = createCartItem(picturedProduct, "M", picturedProduct.availableColors[0], 4)!;
+    const unlocked = testOrderDraft([four]);
+    expect(unlocked.total).toBe(1800);
+
+    const three = { ...four, quantity: 3 };
+    const reduced: OrderDraft = {
+      ...unlocked,
+      items: [three],
+      subtotal: 1800,
+      bundleDiscount: 0,
+      total: 1800,
+      message: buildWhatsAppMessage({ reference: unlocked.reference, customer: testCustomer, items: [three] }),
+    };
+
+    expect(readPayload(reduced)?.bundleDiscount).toBe(0);
+    expect(readPayload(reduced)?.total).toBe(1800);
+    expect(reduced.message).toContain("Bundle Discount: -₹0");
+  });
+
+  it("rejects edited or inconsistent money values", () => {
     const draft = testOrderDraft();
-    expect(readPayload({ ...draft, total: 0, subtotal: 0 })).toBeNull();
-    expect(readPayload({ ...draft, total: 1200 })).toBeNull();
+    expect(readPayload({ ...draft, total: 0 })).toBeNull();
+    expect(readPayload({ ...draft, subtotal: 1200 })).toBeNull();
+    expect(readPayload({ ...draft, bundleDiscount: 600, total: 0 })).toBeNull();
+    expect(readPayload({ ...draft, shipping: 49 })).toBeNull();
+    expect(readPayload({ ...draft, total: undefined })).toBeNull();
     expect(readPayload({ ...draft, subtotal: undefined })).toBeNull();
+  });
+
+  it("rejects a repeated discount that the pricing rule would not apply", () => {
+    const item = createCartItem(picturedProduct, "M", picturedProduct.availableColors[0], 8)!;
+    const draft = testOrderDraft([item]);
+    expect(draft.bundleDiscount).toBe(600);
+    expect(readPayload({ ...draft, bundleDiscount: 1200, total: 3600 })).toBeNull();
+    expect(readPayload({ ...draft, bundleDiscount: 1200, total: 3600 })).toBeNull();
   });
 
   it.each([0, 11, -1, 1.5, null, "2"])("rejects invalid persisted quantity %s", (quantity) => {
@@ -45,7 +81,7 @@ describe("browser-local order handoff drafts", () => {
     expect(readPayload({ ...draft, items: [{ ...draft.items[0], quantity }] })).toBeNull();
   });
 
-  it.each([-1, "100", undefined])("rejects invalid persisted price %s", (price) => {
+  it.each([-1, "100", undefined, null])("rejects invalid persisted price %s", (price) => {
     const draft = testOrderDraft();
     expect(readPayload({ ...draft, items: [{ ...draft.items[0], price }] })).toBeNull();
   });

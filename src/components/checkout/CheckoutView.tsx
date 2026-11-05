@@ -9,7 +9,10 @@ import { FormField } from "@/components/checkout/FormField";
 import { hasConfiguredWhatsApp, storeConfig } from "@/config/store";
 import { useCart } from "@/context/CartContext";
 import { saveOrderDraft } from "@/lib/order";
-import { calculateLineTotal, calculateSubtotal, formatINR, calculateCartDiscount } from "@/lib/utils";
+import { calculateLineTotal, calculateOrderTotals, ORIGINAL_UNIT_PRICE, SHIPPING_LABEL } from "@/lib/pricing";
+import { formatINR } from "@/lib/utils";
+import { BundleProgress } from "@/components/cart/BundleProgress";
+import { OrderBreakdown } from "@/components/cart/OrderBreakdown";
 import { hasCheckoutErrors, validateCheckout } from "@/lib/validation";
 import { buildWhatsAppMessage, buildWhatsAppUrl, generateOrderReference } from "@/lib/whatsapp";
 import type { CheckoutCustomer, CheckoutErrors, OrderDraft } from "@/types";
@@ -33,10 +36,8 @@ export function CheckoutView() {
   const [submitError, setSubmitError] = useState("");
   const isBuyNow = searchParams.get("mode") === "buy-now";
   const checkoutItems = useMemo(() => (isBuyNow ? (buyNowItem ? [buyNowItem] : []) : items), [buyNowItem, isBuyNow, items]);
-  const subtotal = calculateSubtotal(checkoutItems);
-  // Calculate discount
-  const discount = calculateCartDiscount(checkoutItems);
-  const finalTotal = subtotal !== null ? subtotal - discount : null;
+  // One shared calculation: cart, checkout, order draft and WhatsApp agree.
+  const totals = useMemo(() => calculateOrderTotals(checkoutItems), [checkoutItems]);
 
   const updateField = (field: keyof CheckoutCustomer, value: string) => {
     setCustomer((current) => ({ ...current, [field]: value }));
@@ -86,8 +87,10 @@ export function CheckoutView() {
       source: isBuyNow ? "buy-now" : "cart",
       customer: cleanCustomer,
       items: checkoutItems,
-      subtotal,
-      total: finalTotal,
+      subtotal: totals.subtotal,
+      bundleDiscount: totals.bundleDiscount,
+      shipping: totals.shipping,
+      total: totals.total,
       message,
     };
 
@@ -185,7 +188,7 @@ export function CheckoutView() {
               <ul className="mt-4 space-y-2 text-[10px] leading-relaxed text-muted">
                 <li>— No card, UPI or payment details are requested.</li>
                 <li>— Opening WhatsApp does not place or confirm an order.</li>
-                <li>— Availability, delivery and any shipping charge are confirmed separately.</li>
+                <li>— Shipping is free on every order. The final amount is fixed at ₹600 per tee, less ₹600 once four or more tees are added.</li>
               </ul>
             </div>
           </section>
@@ -215,27 +218,17 @@ export function CheckoutView() {
                 <div className="relative aspect-[3/4] bg-stone"><Image src={item.image} alt="" fill sizes="64px" className="object-contain" /></div>
                 <div className="min-w-0">
                   <h3 className="text-xs font-semibold uppercase">{item.name}</h3>
-                  <p className="mt-2 text-[10px] leading-relaxed text-muted">Requested size {item.size} / {item.color.name}<br />Qty {item.quantity} × {formatINR(600)}</p>
+                  <p className="mt-2 text-[10px] leading-relaxed text-muted">Size {item.size} / {item.color.name}<br />Qty {item.quantity} × {formatINR(item.price)} <span className="line-through">{formatINR(ORIGINAL_UNIT_PRICE)}</span></p>
                 </div>
-                <p className="text-xs font-medium tabular-nums">{formatINR(calculateLineTotal(item), "To confirm")}</p>
+                <p className="text-xs font-medium tabular-nums">{formatINR(calculateLineTotal(item))}</p>
               </li>
             ))}
           </ul>
-          <dl className="space-y-4 border-t border-ink/15 pt-5 text-xs">
-            <div className="flex justify-between"><dt className="text-muted">Subtotal</dt><dd className="tabular-nums">{formatINR(subtotal, "To confirm")}</dd></div>
-            {discount > 0 && (
-              <div className="flex justify-between">
-                <dt className="text-muted">Buy 4, Get 1 Free discount</dt>
-                <dd className="tabular-nums text-red-500">-{formatINR(discount)}</dd>
-              </div>
-            )}
-            <div className="flex justify-between gap-3"><dt className="text-muted">Shipping</dt><dd className="text-right">Confirmed on WhatsApp</dd></div>
-          </dl>
-          <div className="mt-5 flex items-end justify-between border-t border-ink/20 pt-5">
-            <div><p className="text-sm font-semibold uppercase">Product total</p><p className="mt-1 text-[9px] text-muted">Delivery not included unless confirmed</p></div>
-            <p className="text-xl font-semibold tabular-nums">{formatINR(finalTotal, "To confirm")}</p>
-          </div>
-          {subtotal === null && <p className="mt-5 text-xs leading-6 text-muted">Product prices are awaiting confirmation, so no monetary total is quoted. Requested sizes, pictured colours and stock must also be confirmed by the team.</p>}
+          <BundleProgress totals={totals} className="mt-5 border-t border-ink/15 pt-5" />
+          <OrderBreakdown totals={totals} className="mt-5 border-t border-ink/15 pt-5" />
+          <p className="mt-4 flex items-center gap-2 text-[9px] font-semibold uppercase tracking-[0.1em] text-muted">
+            Shipping {SHIPPING_LABEL} · Final amount shown above
+          </p>
           {!isBuyNow && <Link href="/cart" className="mt-5 inline-block text-[10px] uppercase tracking-[0.1em] text-muted underline underline-offset-4">Edit bag</Link>}
         </aside>
       </div>

@@ -17,7 +17,7 @@ const navigation = [
 ];
 
 export function Header() {
-  const { itemCount, hydrated } = useCart();
+  const { itemCount, hydrated, openDrawer } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
   const reduceMotion = useReducedMotion();
@@ -40,7 +40,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-ink/15 bg-paper/95 backdrop-blur-md">
       <div className="border-b border-ink/10 py-2 text-center">
-        <p className="eyebrow text-[9px]">Character graphics · Wear your fandom · India</p>
+        <p className="eyebrow text-[9px]">Free shipping on every order · ₹600 per tee · India</p>
       </div>
       <div className="frame flex h-[72px] items-center justify-between lg:h-20">
         <Wordmark className="relative z-50" />
@@ -65,9 +65,12 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-5">
-          <Link
-            href="/cart"
+          <button
+            type="button"
+            onClick={openDrawer}
             className="group flex min-h-11 items-center gap-2 px-2 text-[11px] font-medium uppercase tracking-[0.1em]"
+            aria-haspopup="dialog"
+            aria-label="Open shopping bag"
           >
             <span className="hidden sm:inline">Bag</span>
             <span className="sr-only sm:hidden">Bag</span>
@@ -76,7 +79,7 @@ export function Header() {
               {hydrated ? itemCount : 0}
             </span>
             <span className="sr-only">{hydrated && itemCount === 1 ? "item" : "items"} in shopping bag</span>
-          </Link>
+          </button>
           <button
             type="button"
             className="relative z-50 inline-flex h-11 w-11 items-center justify-center lg:hidden"

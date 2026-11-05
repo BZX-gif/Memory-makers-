@@ -6,6 +6,8 @@ import { storeConfig } from "@/config/store";
 import { featuredProducts, getProductBySlug, getRelatedProducts, heroProduct, products } from "@/data/products";
 import { PRODUCT_CATEGORIES } from "@/types";
 import { isConfirmedPrice } from "@/lib/utils";
+import { ORIGINAL_UNIT_PRICE, UNIT_PRICE } from "@/lib/pricing";
+import { getMaxQuantity, getStockLabel, isProductSoldOut } from "@/lib/products";
 
 const root = process.cwd();
 const sourcePhotos = Array.from({ length: 14 }, (_, index) => `photo_${index + 1}_2026-11-05_14-26-${index < 11 ? "42" : "43"}.jpg`);
@@ -53,9 +55,11 @@ describe("real-photo catalogue migration", () => {
     expect(new Set(products.map((product) => product.slug)).size).toBe(products.length);
     for (const product of products) {
       expect(product.id).toMatch(/^mm-real-\d{2}$/);
-      // Owner edits to official names, prices, availability and size lists are valid.
+      // Owner edits to official names, availability and size lists are valid.
       expect(product.name.trim().length).toBeGreaterThan(0);
-      expect(product.price === null || isConfirmedPrice(product.price)).toBe(true);
+      expect(product.price).toBe(UNIT_PRICE);
+      expect(product.compareAtPrice).toBe(ORIGINAL_UNIT_PRICE);
+      expect(isConfirmedPrice(product.price)).toBe(true);
       expect(product.inStock === null || typeof product.inStock === "boolean").toBe(true);
       expect(product.availableSizes.every((size) => typeof size === "string" && size.trim().length > 0)).toBe(true);
       expect(getProductBySlug(product.slug)).toBe(product);
@@ -66,6 +70,19 @@ describe("real-photo catalogue migration", () => {
     }
     expect(getProductBySlug("after-hours")).toBeUndefined();
     expect(getProductBySlug("not-a-product")).toBeUndefined();
+  });
+
+  it("prices every tee at ₹600 with a ₹1,200 original and configurable stock", () => {
+    for (const product of products) {
+      expect(product.price).toBe(600);
+      expect(product.compareAtPrice).toBe(1200);
+      expect(product.stock === null || (Number.isInteger(product.stock) && product.stock >= 0)).toBe(true);
+      expect(product.stockLabel === undefined || product.stockLabel === null || typeof product.stockLabel === "string").toBe(true);
+      expect(isProductSoldOut(product)).toBe(false);
+      expect(getMaxQuantity(product)).toBeGreaterThanOrEqual(1);
+      expect(getStockLabel(product)).toMatch(/ONLY \d+ LEFT|LIMITED DROP|SELLING FAST/);
+    }
+    expect(new Set(products.map((product) => product.stock)).size).toBeGreaterThan(3);
   });
 
   it("supplies populated categories, four featured products and a real hero", () => {
