@@ -1,3 +1,5 @@
+import { MAX_LINE_QUANTITY } from "@/lib/pricing";
+
 export function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
@@ -16,51 +18,26 @@ export function formatINR(value: number | null, pendingLabel = "Price to confirm
   }).format(value);
 }
 
-export function clampQuantity(value: number) {
+/**
+ * Keeps every quantity control inside real, owner-configured limits.
+ * `max` is the product's available stock; a non-positive value is a sold-out
+ * product and is treated as 1 so the control never becomes unusable.
+ */
+export function clampQuantity(value: number, max: number = MAX_LINE_QUANTITY) {
+  const ceiling = Number.isFinite(max) && max >= 1 ? Math.min(MAX_LINE_QUANTITY, Math.floor(max)) : MAX_LINE_QUANTITY;
   if (!Number.isFinite(value)) return 1;
-  return Math.min(10, Math.max(1, Math.floor(value)));
+  return Math.min(ceiling, Math.max(1, Math.floor(value)));
 }
 
-export function calculateLineTotal(item: { price: number | null; quantity: number }): number | null {
-  if (!isConfirmedPrice(item.price) || !Number.isFinite(item.quantity) || item.quantity < 1) return null;
-  // Fixed selling price: ₹600 per T-shirt (Original ₹1,200, 50% OFF)
-  const unitPrice = 600;
-  const total = unitPrice * item.quantity;
-  return Number.isFinite(total) ? total : null;
-}
-
-/** A mixed quoted/unquoted bag has no complete total yet; do not show a partial sum. */
-export function calculateSubtotal(items: Array<{ price: number | null; quantity: number }>): number | null {
-  let subtotal = 0;
-  let totalQuantity = 0;
-  for (const item of items) {
-    const lineTotal = calculateLineTotal(item);
-    if (lineTotal === null) return null;
-    subtotal += lineTotal;
-    totalQuantity += item.quantity;
-  }
-  
-  // Buy 4, Get 1 Free promotion: fixed ₹600 discount once per order if quantity >= 4
-  if (totalQuantity >= 4) {
-    subtotal -= 600;
-  }
-  
-  return Number.isFinite(subtotal) ? subtotal : null;
-}
-
-// New utility for cart discount calculation
-export function calculateCartDiscount(items: Array<{ price: number | null; quantity: number }>): number {
-  let totalQuantity = 0;
-  for (const item of items) {
-    if (!isConfirmedPrice(item.price) || !Number.isFinite(item.quantity)) continue;
-    totalQuantity += item.quantity;
-  }
-  return totalQuantity >= 4 ? 600 : 0;
-}
-
-// New utility for final payable amount
-export function calculateFinalTotal(items: Array<{ price: number | null; quantity: number }>): number | null {
-  const subtotal = calculateSubtotal(items);
-  if (subtotal === null) return null;
-  return subtotal;
-}
+/** All money calculations live in one authoritative module. */
+export {
+  calculateLineTotal,
+  calculateOrderTotals,
+  bundleMessage,
+  UNIT_PRICE,
+  ORIGINAL_UNIT_PRICE,
+  BUNDLE_QUANTITY,
+  BUNDLE_DISCOUNT,
+  SHIPPING_FEE,
+  MAX_LINE_QUANTITY,
+} from "@/lib/pricing";

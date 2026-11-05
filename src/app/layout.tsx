@@ -5,6 +5,8 @@ import "@fontsource/instrument-serif/400-italic.css";
 import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import { Header } from "@/components/layout/Header";
+import { CartDrawer } from "@/components/cart/CartDrawer";
+import { AddToCartNotice } from "@/components/cart/AddToCartNotice";
 import { Footer } from "@/components/layout/Footer";
 import { siteUrl, storeConfig } from "@/config/store";
 import { heroProduct } from "@/data/products";
@@ -53,6 +55,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <Header />
           <main id="main-content">{children}</main>
           <Footer />
+          <CartDrawer />
+          <AddToCartNotice />
         </CartProvider>
       </body>
     </html>

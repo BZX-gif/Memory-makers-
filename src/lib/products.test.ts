@@ -1,8 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { products } from "@/data/products";
-import { filterProducts, getAvailabilityLabel, getProductImage, getProductImageAlt, getSizeOptions, SAMPLE_SIZE_OPTIONS } from "@/lib/products";
-import { multiColorProduct, picturedProduct, pricedProduct, unavailableProduct } from "@/test/fixtures";
-import { PRODUCT_CATEGORIES } from "@/types";
+import {
+  filterProducts,
+  getAvailabilityLabel,
+  getMaxQuantity,
+  getProductImage,
+  getProductImageAlt,
+  getSizeOptions,
+  getStockLabel,
+  getStockScarcity,
+  isProductSoldOut,
+  SAMPLE_SIZE_OPTIONS,
+} from "@/lib/products";
+import { lowStockProduct, multiColorProduct, picturedProduct, soldOutProduct, untrackedStockProduct } from "@/test/fixtures";
+import { PRODUCT_CATEGORIES, type Product } from "@/types";
+import { MAX_LINE_QUANTITY } from "@/lib/pricing";
 
 describe("catalogue search and selection", () => {
   it("searches artwork, garment style and pictured colour together", () => {
@@ -21,21 +33,23 @@ describe("catalogue search and selection", () => {
     expect(filterProducts(products, { category: "Graphic Tees", query: "polo" })).toEqual([]);
   });
 
-  it("does not treat unverified stock as confirmed availability or sold out", () => {
-    expect(filterProducts([picturedProduct, multiColorProduct], { availableOnly: true })).toEqual([]);
-    expect(filterProducts([picturedProduct, unavailableProduct, pricedProduct], { availableOnly: true })).toEqual([pricedProduct]);
-    expect(getAvailabilityLabel(picturedProduct)).toBe("Availability to confirm");
-    expect(getAvailabilityLabel(unavailableProduct)).toBe("Currently unavailable");
-    expect(getAvailabilityLabel(pricedProduct)).toBe("Available to request");
+  it("excludes sold-out pieces from the availability filter", () => {
+    const catalogue = [picturedProduct, soldOutProduct, lowStockProduct];
+    expect(filterProducts(catalogue, { availableOnly: true })).toEqual([picturedProduct, lowStockProduct]);
+    expect(getAvailabilityLabel(picturedProduct)).toBe("In stock · Free shipping");
+    expect(getAvailabilityLabel(soldOutProduct)).toBe("Sold out");
+    const unverified = { ...picturedProduct, inStock: null, stock: null } as Product;
+    expect(getAvailabilityLabel(unverified)).toBe("Availability to confirm");
   });
 
   it.each(["price-asc", "price-desc"] as const)("keeps unknown prices last when sorting %s", (sort) => {
-    const low = { ...pricedProduct, id: "priced-low", price: 100 };
-    const high = { ...pricedProduct, id: "priced-high", price: 900 };
-    const catalogue = [picturedProduct, high, low];
-    const expected = sort === "price-asc" ? [low, high, picturedProduct] : [high, low, picturedProduct];
+    const low = { ...picturedProduct, id: "priced-low", price: 100 };
+    const high = { ...picturedProduct, id: "priced-high", price: 900 };
+    const unpriced = { ...picturedProduct, id: "unpriced", price: null };
+    const catalogue = [unpriced, high, low];
+    const expected = sort === "price-asc" ? [low, high, unpriced] : [high, low, unpriced];
     expect(filterProducts(catalogue, { sort })).toEqual(expected);
-    expect(catalogue).toEqual([picturedProduct, high, low]);
+    expect(catalogue).toEqual([unpriced, high, low]);
   });
 
   it("sorts by label and featured status without changing inventory order", () => {
@@ -49,7 +63,8 @@ describe("catalogue search and selection", () => {
   it("offers only marked sample request labels until actual sizes are provided", () => {
     expect(picturedProduct.availableSizes).toEqual([]);
     expect(getSizeOptions(picturedProduct)).toEqual(SAMPLE_SIZE_OPTIONS);
-    expect(getSizeOptions(pricedProduct)).toEqual(["M", "L", "XL"]);
+    const verified = { ...picturedProduct, availableSizes: ["M", "L", "XL"] };
+    expect(getSizeOptions(verified)).toEqual(["M", "L", "XL"]);
   });
 
   it("resolves and describes the actual selected colour image", () => {
@@ -60,5 +75,31 @@ describe("catalogue search and selection", () => {
     expect(getProductImage(multiColorProduct, "missing")).toBe(multiColorProduct.images[0]);
     const invalidImage = { ...picturedProduct, availableColors: [{ ...picturedProduct.availableColors[0], image: "/bad.jpg" }] };
     expect(getProductImage(invalidImage, invalidImage.availableColors[0].name)).toBe(picturedProduct.images[0]);
+  });
+});
+
+describe("configured stock and scarcity labels", () => {
+  it("derives labels from the owner-configured stock count", () => {
+    expect(getStockScarcity(lowStockProduct)).toEqual({ label: "ONLY 5 LEFT", tone: "low" });
+    const twelveLeft = { ...picturedProduct, stock: 12, stockLabel: null };
+    expect(getStockLabel(twelveLeft)).toBe("ONLY 12 LEFT");
+    const plentiful = { ...picturedProduct, stock: 40, stockLabel: null };
+    expect(getStockLabel(plentiful)).toBe("LIMITED DROP");
+  });
+
+  it("honours a configured label override and sold-out state", () => {
+    const sellingFast = { ...picturedProduct, stock: 20, stockLabel: "Selling Fast" };
+    expect(getStockScarcity(sellingFast)).toEqual({ label: "SELLING FAST", tone: "limited" });
+    expect(getStockScarcity(soldOutProduct)).toEqual({ label: "SOLD OUT", tone: "out" });
+    expect(getStockScarcity(untrackedStockProduct)).toBeNull();
+    expect(isProductSoldOut(soldOutProduct)).toBe(true);
+    expect(isProductSoldOut({ ...picturedProduct, stock: 0, inStock: true })).toBe(true);
+  });
+
+  it("caps quantity at real stock, up to the per-variant maximum", () => {
+    expect(getMaxQuantity(lowStockProduct)).toBe(5);
+    expect(getMaxQuantity(picturedProduct)).toBe(Math.min(picturedProduct.stock ?? 10, MAX_LINE_QUANTITY));
+    expect(getMaxQuantity(untrackedStockProduct)).toBe(MAX_LINE_QUANTITY);
+    expect(getMaxQuantity(soldOutProduct)).toBe(1);
   });
 });

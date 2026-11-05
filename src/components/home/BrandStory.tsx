@@ -45,7 +45,7 @@ export function BrandStory() {
           {[
             ["01", "See the actual collection", "The catalogue uses the supplied photographs, not demonstration designs."],
             ["02", "Choose your expression", "Character graphics, distinct colours and three pictured collar styles."],
-            ["03", "Confirm before you commit", "Ask about price, fabric, fit and availability. No payment is taken here."],
+            ["03", "Confirm before you commit", "₹600 per tee, free shipping, ₹600 off at four tees. Ask about fabric, fit and availability — no payment is taken here."],
           ].map(([number, title, copy]) => (
             <div key={number} className="grid grid-cols-[28px_1fr] gap-3">
               <span className="pt-0.5 text-[9px] text-muted">{number}</span>

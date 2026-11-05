@@ -1,5 +1,6 @@
 import { ORDER_STORAGE_PREFIX } from "@/lib/cart";
-import { calculateSubtotal, isConfirmedPrice } from "@/lib/utils";
+import { calculateOrderTotals } from "@/lib/pricing";
+import { isConfirmedPrice } from "@/lib/utils";
 import type { OrderDraft } from "@/types";
 
 export function saveOrderDraft(storage: Storage, draft: OrderDraft) {
@@ -9,10 +10,6 @@ export function saveOrderDraft(storage: Storage, draft: OrderDraft) {
   } catch {
     return false;
   }
-}
-
-function isPriceOrPending(value: unknown) {
-  return value === null || isConfirmedPrice(value);
 }
 
 export function readOrderDraft(storage: Storage, reference: string): OrderDraft | null {
@@ -29,8 +26,10 @@ export function readOrderDraft(storage: Storage, reference: string): OrderDraft 
       typeof draft.customer !== "object" ||
       !Array.isArray(draft.items) ||
       draft.items.length === 0 ||
-      !isPriceOrPending(draft.subtotal) ||
-      !isPriceOrPending(draft.total) ||
+      !isConfirmedPrice(draft.subtotal) ||
+      !isConfirmedPrice(draft.bundleDiscount) ||
+      !isConfirmedPrice(draft.shipping) ||
+      !isConfirmedPrice(draft.total) ||
       (draft.source !== "cart" && draft.source !== "buy-now") ||
       !["fullName", "mobile", "address", "city", "state", "pinCode", "instructions"].every(
         (field) => typeof (draft.customer as unknown as Record<string, unknown>)[field] === "string",
@@ -43,7 +42,11 @@ export function readOrderDraft(storage: Storage, reference: string): OrderDraft 
         typeof item.name === "string" &&
         typeof item.image === "string" &&
         item.image.startsWith("/images/") &&
-        isPriceOrPending(item.price) &&
+        isConfirmedPrice(item.price) &&
+        isConfirmedPrice(item.compareAtPrice) &&
+        typeof item.maxQuantity === "number" &&
+        Number.isInteger(item.maxQuantity) &&
+        item.maxQuantity >= 1 &&
         typeof item.quantity === "number" &&
         Number.isInteger(item.quantity) &&
         item.quantity >= 1 && item.quantity <= 10 &&
@@ -55,9 +58,17 @@ export function readOrderDraft(storage: Storage, reference: string): OrderDraft 
       return null;
     }
 
-    // Pending-price drafts must stay pending; older, fully priced drafts still work.
-    const subtotal = calculateSubtotal(draft.items);
-    if (draft.subtotal !== subtotal || draft.total !== subtotal) return null;
+    // Recompute from the shared pricing module; reject drafts with edited money.
+    const totals = calculateOrderTotals(draft.items);
+    if (
+      draft.subtotal !== totals.subtotal ||
+      draft.bundleDiscount !== totals.bundleDiscount ||
+      draft.shipping !== totals.shipping ||
+      draft.total !== totals.total
+    ) {
+      return null;
+    }
+
     return draft as OrderDraft;
   } catch {
     return null;

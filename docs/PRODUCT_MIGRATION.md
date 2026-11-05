@@ -160,3 +160,25 @@ npm run build
 ```
 
 The catalogue integrity test also compares every public copy with its original. No generated screenshots, browser binaries, dependency caches or build outputs were added to Git.
+
+---
+
+## Cart & pricing update (post-migration)
+
+This report records the catalogue audit and intentionally keeps its original findings. The store's commercial rules were supplied afterwards and are now implemented:
+
+| Rule | Value | Source of truth |
+| --- | --- | --- |
+| Selling price | ₹600 per tee | `src/lib/pricing.ts` (`UNIT_PRICE`) |
+| Original price | ₹1,200, struck through | `src/lib/pricing.ts` (`ORIGINAL_UNIT_PRICE`) |
+| Shipping | Free on every order | `src/lib/pricing.ts` (`SHIPPING_FEE`) |
+| Bundle reward | −₹600 exactly once at 4+ tees | `src/lib/pricing.ts` (`BUNDLE_DISCOUNT`, `BUNDLE_QUANTITY`) |
+
+Catalogue changes: every product now has `price: 600`, `compareAtPrice: 1200`, `inStock: true` and a manually configured `stock` count with an optional `stockLabel`. The counts are catalogue values maintained by hand — **not** live warehouse inventory and never randomly decreased. Quantity controls and the cart reducer cap each variant at `min(stock, 10)`.
+
+Behaviour that supersedes the earlier pending-price notes above:
+
+- A single `calculateOrderTotals()` result feeds the cards, product page, quick view, cart drawer, cart page, checkout summary, saved order draft and WhatsApp message.
+- The ₹600 reward is applied once per order regardless of quantity; 8 tees show ₹4,800 subtotal − ₹600 = ₹4,200.
+- Stored order drafts are re-validated against the pricing function, so an edited or double-applied discount is rejected on reload.
+- The WhatsApp message uses the exact required template and always includes `Bundle Discount: -₹0` or `-₹600`, `Shipping: FREE` and `FINAL AMOUNT PAYABLE`.

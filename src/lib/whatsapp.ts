@@ -1,6 +1,7 @@
 import { hasConfiguredWhatsApp, storeConfig } from "@/config/store";
 import type { CartItem, CheckoutCustomer } from "@/types";
-import { calculateLineTotal, calculateSubtotal, clampQuantity, formatINR, isConfirmedPrice, calculateCartDiscount } from "@/lib/utils";
+import { calculateLineTotal, calculateOrderTotals, SHIPPING_LABEL, UNIT_PRICE } from "@/lib/pricing";
+import { clampQuantity, formatINR } from "@/lib/utils";
 import { normalizeIndianMobile } from "@/lib/validation";
 
 /** Keep user-entered content readable without allowing fake message sections. */
@@ -36,72 +37,66 @@ interface BuildMessageInput {
   items: CartItem[];
 }
 
+/**
+ * The WhatsApp order message. Every rupee figure comes from
+ * calculateOrderTotals(), the exact same function that renders the cart and
+ * checkout, so the sent message can never disagree with the screen.
+ */
 export function buildWhatsAppMessage({ reference, customer, items }: BuildMessageInput) {
   try {
+    const orderItems = items.map((item) => ({ ...item, quantity: clampQuantity(item.quantity, item.maxQuantity) }));
+    const totals = calculateOrderTotals(orderItems);
+
+    const address = [
+      cleanMessageField(customer.address, 240),
+      cleanMessageField(customer.city, 60),
+      cleanMessageField(customer.state, 60),
+    ].filter(Boolean).join(", ");
+
     const lines = [
-      `NEW ORDER — ${storeConfig.brandName}`,
+      `${storeConfig.brandName} — NEW ORDER`,
       "",
       `Order Reference: ${cleanMessageField(reference, 20)}`,
       "",
-      "CUSTOMER DETAILS",
+      "Customer Details:",
       `Name: ${cleanMessageField(customer.fullName, 80)}`,
       `Mobile: ${normalizeIndianMobile(customer.mobile)}`,
+      `Address: ${address}`,
+      `Pincode: ${cleanMessageField(customer.pinCode, 6)}`,
       "",
-      "DELIVERY ADDRESS",
-      `Address: ${cleanMessageField(customer.address, 240)}`,
-      `City: ${cleanMessageField(customer.city, 60)}`,
-      `State: ${cleanMessageField(customer.state, 60)}`,
-      `PIN: ${cleanMessageField(customer.pinCode, 6)}`,
+      "ORDER DETAILS:",
+      "",
     ];
 
-    const instructions = cleanMessageField(customer.instructions, 300);
-    if (instructions) lines.push(`Delivery note: ${instructions}`);
-
-    lines.push("", "ORDER DETAILS", "");
-
-    const requestedItems = items.map((item) => ({ ...item, quantity: clampQuantity(item.quantity) }));
-    
-    // Calculate totals
-    const subtotal = calculateSubtotal(requestedItems);
-    const discount = calculateCartDiscount(requestedItems);
-    const finalTotal = subtotal !== null ? subtotal - discount : null;
-
-    requestedItems.forEach((item, index) => {
+    orderItems.forEach((item) => {
       lines.push(
-        `${index + 1}. ${cleanMessageField(item.name, 100)}`,
-        `Product reference: ${cleanMessageField(item.productId, 40)}`,
-        `Size: ${cleanMessageField(item.size, 12)} (requested)`,
-        `Colour: ${cleanMessageField(item.color.name, 40)} (pictured)`,
+        `Product: ${cleanMessageField(item.name, 100)}`,
+        `Size: ${cleanMessageField(item.size, 12)}`,
+        `Color: ${cleanMessageField(item.color.name, 40)}`,
         `Quantity: ${item.quantity}`,
-        `Price: ₹600 each (Original ₹1,200 — 50% OFF)`,
-        `Item total: ${formatINR(calculateLineTotal(item), "To be confirmed")}`,
+        `Unit Price: ${formatINR(UNIT_PRICE)}`,
+        `Item Total: ${formatINR(calculateLineTotal(item))}`,
         "",
       );
     });
 
-    lines.push(
-      `SUBTOTAL: ${formatINR(subtotal, "To be confirmed — product prices pending")}`,
-    );
-
-    if (discount > 0) {
-      lines.push(
-        `BUY 4, GET 1 FREE DISCOUNT: -${formatINR(discount)}`,
-      );
-    }
+    const instructions = cleanMessageField(customer.instructions, 300);
+    if (instructions) lines.push(`Delivery Note: ${instructions}`, "");
 
     lines.push(
-      `ORDER TOTAL: ${formatINR(finalTotal, "To be confirmed — product prices pending")}`,
-      "Shipping: To be confirmed separately.",
-      "Sizes, pictured colours and quantities are requests, not reserved stock.",
+      `Subtotal: ${formatINR(totals.subtotal)}`,
+      `Bundle Discount: -${formatINR(totals.bundleDiscount)}`,
+      `Shipping: ${SHIPPING_LABEL}`,
+      `FINAL AMOUNT PAYABLE: ${formatINR(totals.total)}`,
       "",
-      "Please confirm prices, sizes, availability and the order.",
+      "Payment Method: Confirm with seller",
       "",
-      `Thank you for choosing ${storeConfig.brandName}.`,
+      "Please confirm availability and delivery details.",
     );
 
     return lines.join("\n");
   } catch {
-    return `NEW ORDER — ${storeConfig.brandName}\n\nWe could not format the order automatically. Please contact the customer to confirm their request.`;
+    return `${storeConfig.brandName} — NEW ORDER\n\nWe could not format the order automatically. Please contact the customer to confirm their request.`;
   }
 }
 

@@ -2,7 +2,7 @@
 
 **WEAR YOUR MEMORIES.** A premium, responsive streetwear storefront built with Next.js, TypeScript and Tailwind CSS. It runs without a database, authentication, paid APIs or a payment gateway. Customers prepare an itemised order request and choose to send it themselves in WhatsApp.
 
-> **Launch status:** the real-photo migration is implemented and production-buildable. The catalogue has 13 garment designs from 14 supplied photos; the fifteenth image is the supplied logo. Official names, prices, specifications, sizes and stock still need owner confirmation. The WhatsApp number remains intentionally unconfigured. Complete the owner checklist below before accepting real requests.
+> **Launch status:** pricing, cart and checkout are implemented and production-buildable. Every tee sells for **₹600** (MRP ₹1,200) with **free shipping**, and **4+ tees unlock one ₹600 discount per order**. The catalogue has 13 garment designs from 14 supplied photos; the fifteenth image is the supplied logo. Official names, fabric specifications and stocked sizes still need owner confirmation. Stock counts are manual catalogue values, not live warehouse inventory. The business WhatsApp number is configured in `src/config/store.ts` (`+91 81284 64638`).
 
 See **[the complete photo-by-photo migration report](docs/PRODUCT_MIGRATION.md)** and **[original-image checksums](docs/original-image-checksums.sha256)**.
 
@@ -13,15 +13,19 @@ See **[the complete photo-by-photo migration report](docs/PRODUCT_MIGRATION.md)*
 - Thirteen photo-backed designs across Graphic Tees, Graphic Polos and Stand-Collar Tees; all supplied originals preserved unchanged.
 - Artwork/style/colour search, real category filters, a confirmed-availability filter and price/name sorting. Unconfirmed prices always sort last.
 - Statically generated product pages with SEO metadata, galleries, mandatory size requests, synchronized gallery/colour selectors, quantity controls, availability protection, visible-feature details and related pieces.
-- Persistent LocalStorage bag with variant-aware line items (`product + size + colour`), colour-specific thumbnails, quantity controls, removal, pending-aware totals and empty/loading states.
+- One shared pricing module (`src/lib/pricing.ts`) drives every money figure: ₹600 per tee, ₹1,200 original, free shipping and exactly one ₹600 bundle discount at 4+ tees (8 tees still get ₹600 off once).
+- Persistent LocalStorage bag with variant-aware line items (`product + size + colour`), colour-specific thumbnails, stock-capped quantity controls, removal and automatic recalculation.
+- Premium slide-over cart drawer plus a quiet, auto-dismissing "GOOD CHOICE." add-to-bag notice with a four-tick reward progress indicator, live cart quantity, subtotal and a "REWARD UNLOCKED." state.
+- Quick-view popup on every product card with the same price, stock, size, colour, quantity and cart rules as the product page.
 - Independent Buy Now checkout storage that never replaces or silently clears the main bag.
 - Checkout validation for required fields, Indian mobile numbers and six-digit Indian PIN codes.
 - Unique client-side `MM-XXXXXX` order references and readable, URL-encoded WhatsApp messages.
 - Official `https://wa.me/` handoff supporting the mobile app and WhatsApp Web.
 - Honest handoff page: reopen WhatsApp, review/copy the message, and explicit reminders that the customer must press **Send** and the team must confirm the order.
-- No payment collection, fake confirmation, reviews, trust badges, stock claims or newsletter backend.
+- Configured scarcity labels per product (`ONLY 12 LEFT`, `ONLY 5 LEFT`, `LIMITED DROP`, `SELLING FAST`) derived from manual stock counts; quantities cannot exceed configured stock.
+- No payment collection, fake confirmation, reviews, trust badges, live-inventory claims or newsletter backend.
 - Responsive images, local fonts, reduced-motion support, semantic controls, metadata, Open Graph, sitemap, robots rules, loading/error/not-found pages.
-- 86 unit/rendering tests for original-asset preservation, catalogue integrity, filtering, variants, prices, cart recovery, validation, order drafts, references and WhatsApp formatting.
+- 141 unit/rendering tests for original-asset preservation, catalogue integrity, filtering, variants, the pricing table (1–10 tees), cart/checkout/WhatsApp parity, stock caps, cart recovery, validation, order drafts, references and WhatsApp formatting.
 
 ## Technology
 
@@ -63,23 +67,27 @@ npm audit          # check dependency advisories
 
 ### 1. WhatsApp Business number — exact location
 
-Open **`src/config/store.ts`** and replace only this placeholder:
+The business number is configured in **`src/config/store.ts`**:
 
 ```ts
-whatsappNumber: "91XXXXXXXXXX",
+whatsappNumber: "918128464638", // +91 81284 64638
 ```
 
-Use the real number in international format with **digits only**: country code followed by the number, without `+`, spaces or dashes. For an Indian number, use `91` followed by the real 10-digit WhatsApp Business mobile number. Do not use the illustrative number from tests.
+Use international format with **digits only**: country code followed by the number, without `+`, spaces or dashes. If the number changes, edit only this value; every checkout button and footer link reads it. Checkout refuses to open a message if the value is missing or malformed.
 
-Until this is replaced, checkout explains that setup is required and refuses to open/send a message. This is deliberate: the project never invents the owner's contact information.
+### 1b. Pricing and stock
+
+- Prices are fixed by store policy in `src/lib/pricing.ts`: ₹600 selling price, ₹1,200 original, free shipping, and one ₹600 discount at four or more tees. Change a value there once and every surface updates.
+- Per-product `stock` and optional `stockLabel` live in `src/data/products.ts`. They are manual catalogue numbers: update them yourself as pieces sell. No stock is ever decremented automatically and no live-inventory claim is made.
 
 ### 2. Complete the real-photo catalogue
 
 Edit **`src/data/products.ts`**. The real-photo records and galleries are already integrated; do not replace them with fictional inventory.
 
 - **Names:** `Sample NN — …` is an editable visual description, not an official business name. Replace it with a verified product name when available. The portrait in photo 11 has intentionally generic wording until its character identity is confirmed.
-- **Prices:** `price: null` means **Price to confirm**, not free. Enter a numeric INR price only when verified. The cart, checkout, saved order and WhatsApp message support pending prices; a mixed priced/unpriced bag never presents a partial sum as its full total.
-- **Availability:** `inStock: null` means unverified and allows a request, `true` means owner-confirmed availability, and `false` disables Add to bag/Buy Now. This remains a manual catalogue, not a live inventory system.
+- **Prices:** every product is `price: 600` with `compareAtPrice: 1200`. The selling price is fixed by the store policy in `src/lib/pricing.ts`; do not hardcode amounts in components. Every surface (cards, product page, quick view, drawer, cart, checkout, saved order, WhatsApp message) reads the same function.
+- **Stock:** `stock` is a manually configured count shown as a scarcity label and used to cap order quantity. `stockLabel` overrides the derived label (for example `SELLING FAST`). Set `stock: 0` or `inStock: false` to sell a piece out. These are catalogue values, not live inventory — there is no warehouse integration, and the site never decrements stock automatically.
+- **Availability:** `inStock: true` allows Add to bag/Buy Now, `false` disables both, and `null` keeps a request possible while showing "Availability to confirm". This remains a manual catalogue, not a live inventory system.
 - **Sizes:** `availableSizes: []` means unknown. The UI uses explicitly marked requested-size labels from `SAMPLE_SIZE_OPTIONS` in `src/lib/products.ts`; those labels are not an inventory or measurement claim. Replace the empty array with only verified size options.
 - **Colours/images:** `availableColors` retains its existing field name but currently represents **pictured** colours, not confirmed stock. Each colour's `image` belongs to the product's `images` array. Photos 7 and 8 are the light-blue and grey variants of one Attack on Titan polo; selecting a colour also selects the matching photo and checkout thumbnail.
 - **Specifications:** only visible features are described. Add verified material, fit and measurements when supplied; marketing claims embedded in an image have not been verified.
@@ -148,17 +156,18 @@ src/
     home/                     # hero, collections, story, social
     shop/                     # search/filter/sort experience
     product/                  # cards, gallery and purchase controls
-    cart/                     # persistent bag UI
+    cart/                     # bag page, drawer, add notice, shared breakdown
     checkout/                 # form, handoff and field components
     ui/                       # motion reveal, quantity and real-catalogue notice
-  context/CartContext.tsx      # bag + separate Buy Now state
+  context/CartContext.tsx      # bag, Buy Now, drawer and add-notice state
   data/products.ts             # PHOTO-BACKED INVENTORY / EDITABLE BUSINESS DETAILS
   config/store.ts              # OWNER CONTACT / WHATSAPP CONFIG
   lib/
-    cart.ts                   # trusted catalogue recovery + reducer
+    cart.ts                   # trusted catalogue recovery, stock caps and reducer
+    pricing.ts                # THE pricing source of truth (₹600, free shipping, bundle)
     order.ts                  # browser-local handoff drafts, including pending totals
-    products.ts               # request-size labels, colour images and catalogue filters
-    utils.ts                  # pending-aware INR, totals and quantity helpers
+    products.ts               # request sizes, stock labels/caps, colour images, filters
+    utils.ts                  # INR formatting and stock-aware quantity clamping
     validation.ts             # customer and Indian format validation
     whatsapp.ts               # reference, message and wa.me URL
     *.test.ts                 # unit tests
@@ -173,7 +182,7 @@ docs/
 
 - No order is sent to a backend and no payment is requested.
 - The bag and Buy Now selection are stored only in the customer's browser, using the existing v1 storage keys. Catalogue data is revalidated when storage is read; stale prices and malformed/unavailable items are not trusted. The new `mm-real-*` ID namespace prevents retired demonstration entries from silently turning into unrelated real products.
-- Pending prices stay `null` through the whole request flow. A numerical total appears only when all selected items have verified catalogue prices. Requested sizes and pictured colours are not a stock reservation.
+- Order totals are recomputed from the shared pricing function on every quantity change or removal; a saved draft with edited totals is rejected when reopened. Requested sizes and pictured colours are not a stock reservation.
 - Submitting checkout creates a browser-local handoff draft and asks the browser to open WhatsApp with a prepared message. If a popup is blocked, the handoff page provides reopen and copy controls.
 - Opening WhatsApp is **not** presented as a successful order. The customer must press Send, and the owner must confirm availability, final charges and acceptance.
 - The main bag is intentionally retained after handoff. The customer can explicitly clear it from the handoff page. Buy Now never clears pre-existing bag contents.
@@ -181,9 +190,9 @@ docs/
 
 ## Verification
 
-The real-photo migration passes **86 tests across 8 files**, strict TypeScript checking and an optimized production build with all 13 product routes prerendered. Tests cover original/copy checksums, catalogue mapping, colour-specific galleries/thumbnails, search/sorting, pending and numeric totals, variants, persisted recovery, invalid checkout input, WhatsApp content/encoding, order references and placeholder protection.
+The implementation passes **141 tests across 11 files**, strict TypeScript checking and an optimized production build with all 13 product routes prerendered. Tests cover original/copy checksums, catalogue mapping, colour-specific galleries/thumbnails, search/sorting, the 1–10 tee pricing table (`₹600 → ₹4,800 subtotal, −₹600 once, ₹4,200 final`), stock caps, persisted recovery, invalid checkout input, the exact WhatsApp order format, final-amount parity between the cart, checkout and message, order references, the add-to-bag notice and the drawer/cart breakdowns.
 
-An automated Chromium check against the production build also passed **12 scenario groups**, including desktop and 375/320 px mobile layouts, cart refresh/variants, Buy Now isolation, validation, handoff recovery/copying and mobile navigation. All 15 direct public asset URLs and all 15 Next.js optimized image URLs returned HTTP 200; there were no uncaught JavaScript or asset-load errors. This is local production verification, not a claim of deployment to Vercel or a real WhatsApp send. See the migration report for details.
+This round's verification also started the production server and checked every route (`/`, `/shop`, `/cart`, `/checkout`, `/shipping`, all product pages) for HTTP 200 and for the ₹600 / ₹1,200 / stock-label / free-shipping markup. The cart drawer, add-to-bag notice, cart page and shared breakdown were rendered and asserted with seeded cart states (1, 4 and 8 tees, empty bag, mobile-width panel classes). No headless browser was available in this environment, so the pixel-level mobile layout and real WhatsApp send should still be spot-checked once in a phone browser; earlier 375/320 px checks were made against the previous build.
 
 For release, repeat these browser journeys with the owner's real configuration:
 
@@ -192,11 +201,11 @@ For release, repeat these browser journeys with the owner's real configuration:
 3. Increase/decrease quantities and remove a variant.
 4. Refresh the cart and verify every variant and quantity persists.
 5. Submit empty/invalid checkout data and verify focused field errors.
-6. Submit valid data with the configured owner number; verify the WhatsApp message. Pending prices must remain unconfirmed, never ₹0 or a partial order total. Fully priced items must still calculate correctly.
+6. Submit valid data with the configured owner number; verify the WhatsApp message's `FINAL AMOUNT PAYABLE` matches the checkout summary exactly for 1, 3, 4, 5 and 8 tees.
 7. Test popup-blocked reopen and copy-message fallbacks.
 8. Open/close mobile navigation and every mobile menu link.
 9. Visit an empty bag and an unknown product URL.
-10. Verify owner-marked unavailable product controls cannot be submitted, and unknown availability is never shown as confirmed stock.
+10. Verify sold-out products cannot be added and quantities stop at the configured stock.
 11. On the two-colour polo, switch the gallery and colour selector in both directions; check the matching bag/checkout photo.
 12. Verify all root originals with `sha256sum -c docs/original-image-checksums.sha256`.
 

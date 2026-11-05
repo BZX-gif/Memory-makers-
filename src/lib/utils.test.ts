@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { calculateLineTotal, calculateSubtotal, formatINR, isConfirmedPrice } from "@/lib/utils";
+import { clampQuantity, formatINR, isConfirmedPrice } from "@/lib/utils";
+import { calculateLineTotal, calculateOrderTotals, MAX_LINE_QUANTITY, UNIT_PRICE } from "@/lib/pricing";
 
-describe("pending prices and totals", () => {
+describe("money formatting", () => {
   it("formats confirmed values, including an explicitly verified zero", () => {
+    expect(formatINR(600)).toBe("₹600");
     expect(formatINR(1200)).toBe("₹1,200");
     expect(formatINR(0)).toBe("₹0");
   });
@@ -13,22 +15,25 @@ describe("pending prices and totals", () => {
     expect(isConfirmedPrice(value)).toBe(false);
   });
 
-  it("calculates numeric line totals and a fully priced subtotal", () => {
-    const items = [{ price: 100, quantity: 2 }, { price: 300, quantity: 3 }];
-    expect(calculateLineTotal(items[0])).toBe(200);
-    expect(calculateSubtotal(items)).toBe(1100);
-    expect(calculateSubtotal([])).toBe(0);
+  it("exposes the shared calculation rather than a second price table", () => {
+    expect(UNIT_PRICE).toBe(600);
+    expect(calculateLineTotal({ quantity: 2 })).toBe(1200);
+    expect(calculateOrderTotals([{ quantity: 4 }]).total).toBe(1800);
+  });
+});
+
+describe("quantity limits", () => {
+  it("clamps to the default ceiling", () => {
+    expect(clampQuantity(0)).toBe(1);
+    expect(clampQuantity(2.9)).toBe(2);
+    expect(clampQuantity(50)).toBe(MAX_LINE_QUANTITY);
+    expect(clampQuantity(NaN)).toBe(1);
   });
 
-  it("preserves unknown totals for unpriced and mixed-price selections", () => {
-    expect(calculateLineTotal({ price: null, quantity: 3 })).toBeNull();
-    expect(calculateSubtotal([{ price: null, quantity: 3 }])).toBeNull();
-    expect(calculateSubtotal([{ price: 100, quantity: 1 }, { price: null, quantity: 2 }])).toBeNull();
-  });
-
-  it("does not render invalid arithmetic as a total", () => {
-    expect(calculateLineTotal({ price: 10, quantity: NaN })).toBeNull();
-    expect(calculateLineTotal({ price: -1, quantity: 2 })).toBeNull();
-    expect(calculateSubtotal([{ price: Number.MAX_VALUE, quantity: 2 }])).toBeNull();
+  it("clamps to configured stock and never trusts a bad ceiling", () => {
+    expect(clampQuantity(5, 3)).toBe(3);
+    expect(clampQuantity(2, 0)).toBe(2);
+    expect(clampQuantity(2, -4)).toBe(2);
+    expect(clampQuantity(40, 99)).toBe(MAX_LINE_QUANTITY);
   });
 });

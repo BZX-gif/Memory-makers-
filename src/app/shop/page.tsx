@@ -6,7 +6,7 @@ import { heroProduct, products } from "@/data/products";
 
 export const metadata: Metadata = {
   title: "Shop the Collection",
-  description: "Explore the supplied MEMORY MAKERS product photographs: graphic T-shirts, polos and stand-collar styles. Prices, sizes and availability are confirmed before an order is accepted.",
+  description: "Explore the MEMORY MAKERS collection: graphic T-shirts, polos and stand-collar styles. Every tee is ₹600 (MRP ₹1,200) with free shipping and ₹600 off at four tees.",
   openGraph: {
     title: "Shop the Collection — MEMORY MAKERS",
     description: "Find the piece that feels like you.",
