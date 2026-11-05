@@ -23,6 +23,14 @@ export const storeConfig = {
     // Business Instagram profile
     instagram: "https://www.instagram.com/mm_weareble/",
   },
+  credit: {
+    // Discreet "Designed & developed by WEBPI" signature at the very bottom of the footer.
+    // OWNER: paste a verified WEBPI website or social profile URL (https://...) to make the
+    // name clickable. Leave it empty until a real URL is confirmed — the name then renders
+    // as plain text, so no invented destination is ever shipped.
+    label: "WEBPI",
+    url: "",
+  },
   shipping: {
     // Store policy: shipping is free on every order.
     free: true,
