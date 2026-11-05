@@ -66,6 +66,7 @@ export interface OrderDraft {
   items: CartItem[];
   /** Unknown if any item still needs a quote. Never a partial monetary total. */
   subtotal: number | null;
+  /** Final payable amount after Buy 4, Get 1 Free discount */
   total: number | null;
   message: string;
 }

@@ -1,6 +1,6 @@
 import { hasConfiguredWhatsApp, storeConfig } from "@/config/store";
 import type { CartItem, CheckoutCustomer } from "@/types";
-import { calculateLineTotal, calculateSubtotal, clampQuantity, formatINR, isConfirmedPrice } from "@/lib/utils";
+import { calculateLineTotal, calculateSubtotal, clampQuantity, formatINR, isConfirmedPrice, calculateCartDiscount } from "@/lib/utils";
 import { normalizeIndianMobile } from "@/lib/validation";
 
 /** Keep user-entered content readable without allowing fake message sections. */
@@ -60,6 +60,12 @@ export function buildWhatsAppMessage({ reference, customer, items }: BuildMessag
     lines.push("", "ORDER DETAILS", "");
 
     const requestedItems = items.map((item) => ({ ...item, quantity: clampQuantity(item.quantity) }));
+    
+    // Calculate totals
+    const subtotal = calculateSubtotal(requestedItems);
+    const discount = calculateCartDiscount(requestedItems);
+    const finalTotal = subtotal !== null ? subtotal - discount : null;
+
     requestedItems.forEach((item, index) => {
       lines.push(
         `${index + 1}. ${cleanMessageField(item.name, 100)}`,
@@ -67,15 +73,24 @@ export function buildWhatsAppMessage({ reference, customer, items }: BuildMessag
         `Size: ${cleanMessageField(item.size, 12)} (requested)`,
         `Colour: ${cleanMessageField(item.color.name, 40)} (pictured)`,
         `Quantity: ${item.quantity}`,
-        `Price: ${isConfirmedPrice(item.price) ? `${formatINR(item.price)} each` : "To be confirmed"}`,
+        `Price: ₹600 each (Original ₹1,200 — 50% OFF)`,
         `Item total: ${formatINR(calculateLineTotal(item), "To be confirmed")}`,
         "",
       );
     });
 
-    const subtotal = calculateSubtotal(requestedItems);
     lines.push(
-      `ORDER TOTAL: ${formatINR(subtotal, "To be confirmed — product prices pending")}`,
+      `SUBTOTAL: ${formatINR(subtotal, "To be confirmed — product prices pending")}`,
+    );
+
+    if (discount > 0) {
+      lines.push(
+        `BUY 4, GET 1 FREE DISCOUNT: -${formatINR(discount)}`,
+      );
+    }
+
+    lines.push(
+      `ORDER TOTAL: ${formatINR(finalTotal, "To be confirmed — product prices pending")}`,
       "Shipping: To be confirmed separately.",
       "Sizes, pictured colours and quantities are requests, not reserved stock.",
       "",

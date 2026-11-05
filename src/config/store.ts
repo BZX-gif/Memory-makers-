@@ -13,15 +13,15 @@ export const storeConfig = {
   tagline: "WEAR YOUR MEMORIES.",
   // Supplied artwork, not a product or a change to the store's name.
   brandImage: "/images/products/real/Picsart_26-09-26_18-26-44-656.jpg",
-  whatsappNumber: "91XXXXXXXXXX", // TODO: BUSINESS OWNER — REPLACE THIS VALUE.
+  whatsappNumber: "918128464638", // Business WhatsApp number
   currency: "INR",
   contact: {
     email: "", // Optional: add a verified public business email.
     location: "India",
   },
   social: {
-    // TODO: replace this platform placeholder with the brand's profile URL.
-    instagram: "https://www.instagram.com/",
+    // Business Instagram profile
+    instagram: "https://www.instagram.com/mm_weareble/",
   },
   shipping: {
     information:
