@@ -5,7 +5,8 @@ import { Search, SlidersHorizontal, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { ProductCard } from "@/components/product/ProductCard";
-import { DemoNotice } from "@/components/ui/DemoNotice";
+import { CatalogueNotice } from "@/components/ui/CatalogueNotice";
+import { filterProducts, type ProductSortOption } from "@/lib/products";
 import { products } from "@/data/products";
 import { PRODUCT_CATEGORIES, type ProductCategory } from "@/types";
 
@@ -16,14 +17,12 @@ const sortOptions = [
   { value: "name", label: "Name: A–Z" },
 ] as const;
 
-type SortOption = (typeof sortOptions)[number]["value"];
-
 export function ShopExperience() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const reduceMotion = useReducedMotion();
   const [query, setQuery] = useState("");
-  const [sort, setSort] = useState<SortOption>("featured");
+  const [sort, setSort] = useState<ProductSortOption>("featured");
   const [availableOnly, setAvailableOnly] = useState(false);
 
   const categoryParam = searchParams.get("category");
@@ -31,25 +30,10 @@ export function ShopExperience() {
     ? (categoryParam as ProductCategory)
     : "All";
 
-  const visibleProducts = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase();
-    return products
-      .filter((product) => category === "All" || product.category === category)
-      .filter((product) => !availableOnly || product.inStock)
-      .filter((product) => {
-        if (!normalizedQuery) return true;
-        return [product.name, product.description, product.category]
-          .join(" ")
-          .toLocaleLowerCase()
-          .includes(normalizedQuery);
-      })
-      .sort((a, b) => {
-        if (sort === "price-asc") return a.price - b.price;
-        if (sort === "price-desc") return b.price - a.price;
-        if (sort === "name") return a.name.localeCompare(b.name);
-        return Number(b.featured) - Number(a.featured) || a.id.localeCompare(b.id);
-      });
-  }, [availableOnly, category, query, sort]);
+  const visibleProducts = useMemo(
+    () => filterProducts(products, { category, query, availableOnly, sort }),
+    [availableOnly, category, query, sort],
+  );
 
   const selectCategory = (nextCategory: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -91,7 +75,7 @@ export function ShopExperience() {
                 type="search"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search by name, idea or collection"
+                placeholder="Search artwork, colour or style"
                 className="h-11 w-full border-b border-ink/25 bg-transparent pl-7 pr-9 text-xs outline-none transition-colors placeholder:text-muted focus:border-ink"
               />
               {query && (
@@ -107,12 +91,12 @@ export function ShopExperience() {
                 onChange={(event) => setAvailableOnly(event.target.checked)}
                 className="h-4 w-4 accent-ink"
               />
-              Available only
+              Confirmed available only
             </label>
             <label className="flex items-center gap-3 text-[10px] font-medium uppercase tracking-[0.1em]">
               <SlidersHorizontal size={14} strokeWidth={1.5} aria-hidden="true" />
               <span className="sr-only">Sort products</span>
-              <select value={sort} onChange={(event) => setSort(event.target.value as SortOption)} className="h-11 cursor-pointer border-b border-ink/25 bg-transparent pr-5 text-[10px] font-medium uppercase tracking-[0.08em] outline-none focus:border-ink">
+              <select value={sort} onChange={(event) => setSort(event.target.value as ProductSortOption)} className="h-11 cursor-pointer border-b border-ink/25 bg-transparent pr-5 text-[10px] font-medium uppercase tracking-[0.08em] outline-none focus:border-ink">
                 {sortOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
               </select>
             </label>
@@ -121,6 +105,7 @@ export function ShopExperience() {
       </section>
 
       <section className="frame py-10 sm:py-14" aria-live="polite" aria-busy="false">
+        {(sort === "price-asc" || sort === "price-desc") && <p className="mb-6 text-xs leading-6 text-muted">Confirmed prices sort first. Pieces awaiting a price stay at the end in label order.</p>}
         <div className="mb-8 flex items-center justify-between gap-5">
           <p className="eyebrow text-muted">{visibleProducts.length} {visibleProducts.length === 1 ? "piece" : "pieces"} {category !== "All" && `/ ${category}`}</p>
           {(query || category !== "All" || availableOnly || sort !== "featured") && (
@@ -148,12 +133,12 @@ export function ShopExperience() {
         ) : (
           <div className="flex min-h-[40vh] flex-col items-center justify-center border-y border-ink/15 py-16 text-center">
             <p className="font-serif text-5xl italic">Nothing here—yet.</p>
-            <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted">Try another word or clear the filters to see the full demonstration collection.</p>
+            <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted">{availableOnly ? "Only owner-confirmed availability appears in this filter. Clear it to browse pieces whose availability is still to be confirmed." : "Try another word or clear the filters to see the full photographed collection."}</p>
             <button type="button" onClick={clearFilters} className="button-dark mt-7">View all pieces</button>
           </div>
         )}
 
-        <div className="mt-12"><DemoNotice compact /></div>
+        <div className="mt-12"><CatalogueNotice compact /></div>
       </section>
     </>
   );

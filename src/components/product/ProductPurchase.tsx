@@ -4,28 +4,37 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Check, MessageCircle, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { QuantityControl } from "@/components/ui/QuantityControl";
 import { useCart } from "@/context/CartContext";
 import { formatINR } from "@/lib/utils";
-import type { Product } from "@/types";
+import { getAvailabilityLabel, getSizeOptions } from "@/lib/products";
+import type { Product, ProductColor } from "@/types";
 
-export function ProductPurchase({ product }: { product: Product }) {
+export function ProductPurchase({ product, color, onColorChange }: {
+  product: Product;
+  color: ProductColor;
+  onColorChange: (color: ProductColor) => void;
+}) {
   const router = useRouter();
   const { addItem, startBuyNow } = useCart();
   const [size, setSize] = useState("");
-  const [color, setColor] = useState(product.availableColors[0]);
   const [quantity, setQuantity] = useState(1);
   const [error, setError] = useState("");
   const [added, setAdded] = useState(false);
+  const sizeOptions = getSizeOptions(product);
+  const sizesUnconfirmed = product.availableSizes.length === 0;
+  const unavailable = product.inStock === false;
+
+  useEffect(() => setAdded(false), [color.name]);
 
   const validateSelection = () => {
-    if (!product.inStock) {
-      setError("This sample product is currently unavailable.");
+    if (unavailable) {
+      setError("This product is currently unavailable.");
       return false;
     }
-    if (!size || !product.availableSizes.includes(size)) {
-      setError("Choose a size before continuing.");
+    if (!size || !sizeOptions.includes(size)) {
+      setError("Choose a requested size before continuing.");
       return false;
     }
     setError("");
@@ -52,28 +61,32 @@ export function ProductPurchase({ product }: { product: Product }) {
 
   return (
     <div className="lg:sticky lg:top-36">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <p className="eyebrow text-muted">{product.category}</p>
         <p className="flex items-center gap-2 text-[10px] uppercase tracking-[0.1em] text-muted">
-          <span className={`h-1.5 w-1.5 rounded-full ${product.inStock ? "bg-ink" : "bg-muted"}`} />
-          {product.inStock ? "Available to request" : "Currently unavailable"}
+          <span className={`h-1.5 w-1.5 rounded-full ${product.inStock === true ? "bg-ink" : "bg-muted"}`} />
+          {getAvailabilityLabel(product)}
         </p>
       </div>
-      <h1 className="mt-5 text-[clamp(2.9rem,5vw,5.8rem)] font-semibold uppercase leading-[0.88] tracking-[-0.06em]">{product.name}</h1>
+      <h1 className="mt-5 text-[clamp(2.3rem,4vw,4.5rem)] font-semibold uppercase leading-[0.88] tracking-[-0.06em]">{product.name}</h1>
       <p className="mt-5 text-lg font-medium tabular-nums">{formatINR(product.price)}</p>
+      {product.name.startsWith("Sample ") && <p className="mt-2 text-[10px] uppercase tracking-[0.1em] text-muted">Editable descriptive label / Official name to confirm</p>}
       <p className="mt-6 max-w-lg text-sm leading-7 text-muted">{product.description}</p>
+      {(product.price === null || product.inStock === null) && (
+        <p className="mt-4 border border-ink/15 bg-chalk p-4 text-xs leading-6 text-muted">Price and availability must be confirmed by the owner. Add to bag and Buy Now prepare a request only; they do not reserve stock or collect payment.</p>
+      )}
 
       <div className="mt-9 border-t border-ink/20 pt-7">
         <div>
-          <fieldset disabled={!product.inStock} className="border-0 p-0">
+          <fieldset disabled={unavailable} className="border-0 p-0">
             <legend className="eyebrow w-full">
               <span className="flex items-center justify-between gap-4">
-                <span>Select size <span className="text-muted">/ Required</span></span>
+                <span>{sizesUnconfirmed ? "Request size" : "Select size"} <span className="text-muted">/ Required</span></span>
                 {size && <span className="text-[10px] font-normal normal-case tracking-normal text-muted">Selected: {size}</span>}
               </span>
             </legend>
             <div className="mt-4 grid grid-cols-5 gap-2">
-              {product.availableSizes.map((option) => (
+              {sizeOptions.map((option) => (
               <button
                 key={option}
                 type="button"
@@ -87,14 +100,16 @@ export function ProductPurchase({ product }: { product: Product }) {
             </div>
           </fieldset>
 
-          <fieldset disabled={!product.inStock} className="mt-7 border-0 p-0">
-            <legend className="eyebrow">Colour <span className="font-normal normal-case tracking-normal text-muted">— {color.name}</span></legend>
+          {sizesUnconfirmed && <p className="mt-3 text-[10px] leading-relaxed text-muted">Sample size labels only, not verified stock or measurements. Select your preferred label; the team must confirm the size and fit.</p>}
+
+          <fieldset disabled={unavailable} className="mt-7 border-0 p-0">
+            <legend className="eyebrow">Pictured colour <span className="font-normal normal-case tracking-normal text-muted">— {color.name}</span></legend>
             <div className="mt-4 flex flex-wrap gap-3">
               {product.availableColors.map((option) => (
                 <button
                   key={option.name}
                   type="button"
-                  onClick={() => { setColor(option); setAdded(false); }}
+                  onClick={() => { onColorChange(option); setAdded(false); }}
                   className={`flex h-11 items-center gap-2 border px-3 text-[10px] uppercase tracking-[0.08em] transition-colors ${color.name === option.name ? "border-ink" : "border-ink/20 hover:border-ink/60"}`}
                   aria-pressed={color.name === option.name}
                 >
@@ -120,15 +135,15 @@ export function ProductPurchase({ product }: { product: Product }) {
           )}
         </AnimatePresence>
 
-        {!product.inStock && (
-          <p className="mt-6 border border-ink/20 p-4 text-xs leading-relaxed text-muted">This demonstration item is marked unavailable in the catalogue. Adding it to the bag and Buy Now are disabled.</p>
+        {unavailable && (
+          <p className="mt-6 border border-ink/20 p-4 text-xs leading-relaxed text-muted">The owner has marked this product unavailable. Adding it to the bag and Buy Now are disabled.</p>
         )}
 
         <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-          <button type="button" onClick={handleAdd} disabled={!product.inStock} className="button-dark w-full">
+          <button type="button" onClick={handleAdd} disabled={unavailable} className="button-dark w-full">
             <ShoppingBag size={15} strokeWidth={1.5} /> Add to bag
           </button>
-          <button type="button" onClick={handleBuyNow} disabled={!product.inStock} className="button-light w-full">
+          <button type="button" onClick={handleBuyNow} disabled={unavailable} className="button-light w-full">
             Buy now <ArrowRight size={15} strokeWidth={1.5} />
           </button>
         </div>
@@ -150,11 +165,11 @@ export function ProductPurchase({ product }: { product: Product }) {
             <ul className="mt-4 space-y-2 text-xs leading-relaxed text-muted">
               {product.details.map((detail) => <li key={detail}>— {detail}</li>)}
             </ul>
-            <p className="mt-4 text-[10px] leading-relaxed text-muted">Demonstration specifications. The owner must add verified garment and fit information before launch.</p>
+            <p className="mt-4 text-[10px] leading-relaxed text-muted">Only visible features are described above. Material, fit and measurements are awaiting owner confirmation; claims printed inside supplied photographs have not been verified.</p>
           </details>
           <details className="group border-b border-ink/20 py-5">
             <summary className="flex cursor-pointer list-none items-center justify-between text-[11px] font-semibold uppercase tracking-[0.1em]">Ordering & delivery <span className="text-lg font-light group-open:rotate-45">+</span></summary>
-            <p className="mt-4 text-xs leading-6 text-muted">No payment is taken here. Send your request on WhatsApp; the team will confirm availability, delivery and any shipping charge with you.</p>
+            <p className="mt-4 text-xs leading-6 text-muted">No payment is taken here. Send your request on WhatsApp; the team must confirm the price, requested size, availability, delivery and any shipping charge with you.</p>
           </details>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { products } from "@/data/products";
 import type { CartItem, Product, ProductColor } from "@/types";
-import { clampQuantity } from "@/lib/utils";
+import { clampQuantity, isConfirmedPrice } from "@/lib/utils";
+import { getProductImage, getSizeOptions } from "@/lib/products";
 
 export const CART_STORAGE_KEY = "memory-makers:cart:v1";
 export const BUY_NOW_STORAGE_KEY = "memory-makers:buy-now:v1";
@@ -18,12 +19,11 @@ export function createCartItem(
 ): CartItem | null {
   const verifiedColor = product.availableColors.find((candidate) => candidate.name === color.name);
   if (
-    !product.inStock ||
-    !product.availableSizes.includes(size) ||
+    product.inStock === false ||
+    !getSizeOptions(product).includes(size) ||
     !verifiedColor ||
     !product.images[0] ||
-    !Number.isFinite(product.price) ||
-    product.price < 0
+    (product.price !== null && !isConfirmedPrice(product.price))
   ) {
     return null;
   }
@@ -34,7 +34,7 @@ export function createCartItem(
     slug: product.slug,
     name: product.name,
     price: product.price,
-    image: product.images[0],
+    image: getProductImage(product, verifiedColor.name),
     size,
     color: verifiedColor,
     quantity: clampQuantity(quantity),
@@ -42,7 +42,7 @@ export function createCartItem(
 }
 
 /** Rebuild persisted items from trusted catalogue data; ignore malformed entries. */
-export function normalizeCartItems(value: unknown): CartItem[] {
+export function normalizeCartItems(value: unknown, catalogue: Product[] = products): CartItem[] {
   if (!Array.isArray(value)) return [];
   const normalized: CartItem[] = [];
 
@@ -51,7 +51,7 @@ export function normalizeCartItems(value: unknown): CartItem[] {
     const raw = candidate as Record<string, unknown>;
     if (typeof raw.productId !== "string" || typeof raw.size !== "string") continue;
 
-    const product = products.find((item) => item.id === raw.productId);
+    const product = catalogue.find((item) => item.id === raw.productId);
     const rawColor = raw.color as Record<string, unknown> | undefined;
     if (!product || !rawColor || typeof rawColor.name !== "string") continue;
 
@@ -109,23 +109,23 @@ export function cartReducer(state: CartItem[], action: CartAction): CartItem[] {
   }
 }
 
-export function readStoredCart(storage: Storage): CartItem[] {
+export function readStoredCart(storage: Storage, catalogue: Product[] = products): CartItem[] {
   try {
     const raw = storage.getItem(CART_STORAGE_KEY);
     if (!raw) return [];
     const parsed: unknown = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object") return [];
-    return normalizeCartItems((parsed as { items?: unknown }).items);
+    return normalizeCartItems((parsed as { items?: unknown }).items, catalogue);
   } catch {
     return [];
   }
 }
 
-export function readStoredBuyNow(storage: Storage): CartItem | null {
+export function readStoredBuyNow(storage: Storage, catalogue: Product[] = products): CartItem | null {
   try {
     const raw = storage.getItem(BUY_NOW_STORAGE_KEY);
     if (!raw) return null;
-    return normalizeCartItems([JSON.parse(raw)])[0] ?? null;
+    return normalizeCartItems([JSON.parse(raw)], catalogue)[0] ?? null;
   } catch {
     return null;
   }

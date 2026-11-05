@@ -1,29 +1,36 @@
 export const PRODUCT_CATEGORIES = [
   "Graphic Tees",
-  "Typography Tees",
-  "Art Collection",
-  "Minimal Collection",
+  "Graphic Polos",
+  "Stand-Collar Tees",
 ] as const;
 
 export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number];
 
 export interface ProductColor {
+  /** Descriptive label and approximate swatch for a pictured colour, not stock. */
   name: string;
   hex: string;
+  /** A gallery image of this colour. Never substitute another colour in the bag. */
+  image?: string;
 }
 
 export interface Product {
   id: string;
   slug: string;
+  /** Use an explicitly marked sample label until the owner supplies a name. */
   name: string;
   description: string;
-  price: number;
+  /** null means awaiting a quote, not free or zero-priced. */
+  price: number | null;
   images: string[];
   category: ProductCategory;
+  /** Empty until verified. The UI then offers labelled size requests instead. */
   availableSizes: string[];
+  /** Pictured colours only; availability must be confirmed separately. */
   availableColors: ProductColor[];
   featured: boolean;
-  inStock: boolean;
+  /** null = unverified (requests allowed); false = unavailable; true = confirmed. */
+  inStock: boolean | null;
   details: string[];
 }
 
@@ -32,7 +39,7 @@ export interface CartItem {
   productId: string;
   slug: string;
   name: string;
-  price: number;
+  price: number | null;
   image: string;
   size: string;
   color: ProductColor;
@@ -57,7 +64,8 @@ export interface OrderDraft {
   source: "cart" | "buy-now";
   customer: CheckoutCustomer;
   items: CartItem[];
-  subtotal: number;
-  total: number;
+  /** Unknown if any item still needs a quote. Never a partial monetary total. */
+  subtotal: number | null;
+  total: number | null;
   message: string;
 }

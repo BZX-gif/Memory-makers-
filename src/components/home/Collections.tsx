@@ -11,24 +11,25 @@ export function Collections() {
       <Reveal className="mb-10 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
         <div>
           <p className="eyebrow mb-4 text-muted">02 / Find your language</p>
-          <h2 id="collections-heading" className="section-title">Four ways<br /><span className="font-serif font-normal normal-case italic tracking-normal">to say something.</span></h2>
+          <h2 id="collections-heading" className="section-title">Find a style<br /><span className="font-serif font-normal normal-case italic tracking-normal">that speaks to you.</span></h2>
         </div>
-        <p className="max-w-xs text-sm leading-relaxed text-muted">From a single quiet mark to a whole canvas of colour. Start with what feels like you.</p>
+        <p className="max-w-xs text-sm leading-relaxed text-muted">Crew necks, polo collars and upright collars. Explore the styles visible in the supplied collection.</p>
       </Reveal>
 
-      <div className="grid gap-x-4 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-x-4 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
         {PRODUCT_CATEGORIES.map((category, index) => {
-          const product = products.find((item) => item.category === category)!;
+          const product = products.find((item) => item.category === category);
+          if (!product) return null;
           return (
             <Reveal key={category} delay={index * 0.06}>
               <Link href={`/shop?category=${encodeURIComponent(category)}`} className="group block">
-                <div className="relative aspect-[4/5] overflow-hidden bg-stone">
+                <div className="relative aspect-[3/4] overflow-hidden bg-stone">
                   <Image
                     src={product.images[0]}
                     alt={`${category} featuring ${product.name}`}
                     fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                    className="object-cover transition-transform duration-700 ease-editorial group-hover:scale-105"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="object-contain"
                   />
                   <span className="absolute right-0 top-0 flex h-12 w-12 items-center justify-center bg-paper transition-colors group-hover:bg-ink group-hover:text-chalk">
                     <ArrowUpRight size={20} strokeWidth={1.3} aria-hidden="true" />

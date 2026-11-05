@@ -19,7 +19,7 @@ export default function ShippingPage() {
           {[
             ["01", "Send a request, not a payment", "Checkout prepares a WhatsApp message containing your selected pieces and delivery information. You must review it and press Send inside WhatsApp yourself. No online payment is collected."],
             ["02", "Wait for personal confirmation", "Opening WhatsApp—or even sending the message—does not mean your order is accepted. The store team must confirm availability, delivery details and the final amount directly with you."],
-            ["03", "Confirm delivery before payment", storeConfig.shipping.information + " No delivery timeline is promised by this demonstration website. Ask the team for verified costs and timing before agreeing to pay."],
+            ["03", "Confirm delivery before payment", storeConfig.shipping.information + " No delivery timeline is promised by this website. Ask the team for verified costs and timing before agreeing to pay."],
           ].map(([number, title, copy]) => (
             <section key={number} className="grid gap-3 border-b border-ink/15 pb-8 sm:grid-cols-[50px_1fr]">
               <span className="eyebrow text-muted">{number}</span>

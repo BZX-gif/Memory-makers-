@@ -31,7 +31,7 @@ export default function HomePage() {
           ))}
         </div>
         <Link href="/shop" className="button-light mt-10 w-full sm:hidden">Explore all pieces <ArrowRight size={15} /></Link>
-        <p className="mt-10 text-[9px] uppercase leading-relaxed tracking-[0.13em] text-muted">Demonstration collection · Product details and availability are confirmed on WhatsApp.</p>
+        <p className="mt-10 text-[9px] uppercase leading-relaxed tracking-[0.13em] text-muted">Supplied product photographs · Editable sample labels · Prices, sizes and stock to confirm.</p>
       </section>
 
       <BrandStatement />

@@ -1,42 +1,54 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { getProductImageAlt } from "@/lib/products";
 import type { Product } from "@/types";
 
-export function ProductGallery({ product }: { product: Product }) {
-  const [selectedImage, setSelectedImage] = useState(0);
+interface ProductGalleryProps {
+  product: Product;
+  selectedImage: number;
+  onSelectImage: (index: number) => void;
+}
+
+export function ProductGallery({ product, selectedImage, onSelectImage }: ProductGalleryProps) {
+  const image = product.images[selectedImage] ?? product.images[0];
+  const picturedColor = product.availableColors.find((color) => color.image === image);
 
   return (
     <div>
-      <div className="relative aspect-[4/5] overflow-hidden bg-[#dedbd3]">
+      <div className="relative aspect-[3/4] overflow-hidden bg-[#dedbd3]">
         <Image
-          src={product.images[selectedImage]}
-          alt={`${product.name} in ${product.availableColors[0].name}, view ${selectedImage + 1}`}
+          src={image}
+          alt={getProductImageAlt(product, image)}
           fill
           priority
           sizes="(max-width: 1024px) 100vw, 58vw"
-          className="object-cover"
+          className="object-contain"
         />
-        <span className="absolute bottom-4 left-4 bg-paper px-3 py-2 text-[9px] uppercase tracking-[0.16em]">MM / {product.id.replace("mm-", "")}</span>
       </div>
       {product.images.length > 1 && (
         <div className="mt-3 grid grid-cols-4 gap-3" role="group" aria-label="Choose product image">
-          {product.images.map((image, index) => (
-            <button
-              type="button"
-              key={image}
-              onClick={() => setSelectedImage(index)}
-              className={`relative aspect-square border ${selectedImage === index ? "border-ink" : "border-transparent"}`}
-              aria-label={`View image ${index + 1}`}
-              aria-pressed={selectedImage === index}
-            >
-              <Image src={image} alt="" fill sizes="15vw" className="object-cover" />
-            </button>
-          ))}
+          {product.images.map((source, index) => {
+            const color = product.availableColors.find((option) => option.image === source);
+            return (
+              <button
+                type="button"
+                key={source}
+                onClick={() => onSelectImage(index)}
+                className={`relative aspect-[3/4] border-2 ${selectedImage === index ? "border-ink" : "border-transparent"}`}
+                aria-label={`View image ${index + 1}${color ? `: ${color.name}` : ""}`}
+                aria-pressed={selectedImage === index}
+              >
+                <Image src={source} alt="" fill sizes="(max-width: 1024px) 25vw, 15vw" className="object-contain" />
+              </button>
+            );
+          })}
         </div>
       )}
-      <p className="mt-3 text-[9px] uppercase tracking-[0.13em] text-muted">Original demonstration visual / Front artwork view</p>
+      <p className="mt-3 text-[9px] uppercase leading-relaxed tracking-[0.13em] text-muted">
+        Supplied photograph / Front view{picturedColor ? ` / ${picturedColor.name}` : ""} / {selectedImage + 1} of {product.images.length}
+      </p>
+      <p className="mt-2 text-[10px] leading-relaxed text-muted">Photographs are shown unchanged. Promotional text inside them is not a verified material, fit or stock specification.</p>
     </div>
   );
 }

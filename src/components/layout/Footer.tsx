@@ -3,13 +3,11 @@ import Link from "next/link";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
 import { hasConfiguredWhatsApp, storeConfig } from "@/config/store";
 import { Wordmark } from "./Wordmark";
+import { PRODUCT_CATEGORIES } from "@/types";
 
 const shopLinks = [
   ["All pieces", "/shop"],
-  ["Graphic Tees", "/shop?category=Graphic+Tees"],
-  ["Typography Tees", "/shop?category=Typography+Tees"],
-  ["Art Collection", "/shop?category=Art+Collection"],
-  ["Minimal Collection", "/shop?category=Minimal+Collection"],
+  ...PRODUCT_CATEGORIES.map((category) => [category, `/shop?category=${encodeURIComponent(category)}`]),
 ];
 
 export function Footer() {
@@ -70,7 +68,7 @@ export function Footer() {
       <div className="frame border-t border-chalk/15 py-6">
         <div className="flex flex-col gap-4 text-[10px] uppercase tracking-[0.13em] text-chalk/55 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} Memory Makers. All rights reserved.</p>
-          <p>Demo storefront · No online payment · Order requests via WhatsApp</p>
+          <p>Photo catalogue · No online payment · Order requests via WhatsApp</p>
         </div>
       </div>
     </footer>

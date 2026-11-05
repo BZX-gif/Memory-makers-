@@ -7,6 +7,7 @@ import { CartProvider } from "@/context/CartContext";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { siteUrl, storeConfig } from "@/config/store";
+import { heroProduct } from "@/data/products";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -15,20 +16,20 @@ export const metadata: Metadata = {
     template: "%s — MEMORY MAKERS",
   },
   description:
-    "Graphic, typography, art and minimal T-shirts. Original ideas turned into wearable expressions. Explore MEMORY MAKERS and request your order on WhatsApp.",
-  keywords: ["Memory Makers", "graphic T-shirts", "streetwear India", "typography tees", "art T-shirts"],
+    "Explore the MEMORY MAKERS photo catalogue of character graphic T-shirts, polos and stand-collar styles. Request prices, sizes and availability on WhatsApp.",
+  keywords: ["Memory Makers", "graphic T-shirts", "streetwear India", "anime graphics", "graphic polos"],
   openGraph: {
     type: "website",
     siteName: storeConfig.brandName,
     title: "MEMORY MAKERS — Wear Your Memories",
     description: "Not just another T-shirt. An expression of who you are.",
-    images: [{ url: "/images/campaign-hero.jpg", width: 928, height: 1152, alt: "Memory Makers streetwear campaign" }],
+    images: [{ url: heroProduct.images[0], width: 960, height: 1280, alt: heroProduct.name }],
   },
   twitter: {
     card: "summary_large_image",
     title: "MEMORY MAKERS — Wear Your Memories",
-    description: "Art, words and ideas. Made wearable.",
-    images: ["/images/campaign-hero.jpg"],
+    description: "Character graphics. Familiar stories. Explore the photographed collection.",
+    images: [heroProduct.images[0]],
   },
 };
 

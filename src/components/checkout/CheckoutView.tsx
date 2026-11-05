@@ -9,7 +9,7 @@ import { FormField } from "@/components/checkout/FormField";
 import { hasConfiguredWhatsApp, storeConfig } from "@/config/store";
 import { useCart } from "@/context/CartContext";
 import { saveOrderDraft } from "@/lib/order";
-import { calculateSubtotal, formatINR } from "@/lib/utils";
+import { calculateLineTotal, calculateSubtotal, formatINR } from "@/lib/utils";
 import { hasCheckoutErrors, validateCheckout } from "@/lib/validation";
 import { buildWhatsAppMessage, buildWhatsAppUrl, generateOrderReference } from "@/lib/whatsapp";
 import type { CheckoutCustomer, CheckoutErrors, OrderDraft } from "@/types";
@@ -209,23 +209,24 @@ export function CheckoutView() {
           <ul className="divide-y divide-ink/10">
             {checkoutItems.map((item) => (
               <li key={item.key} className="grid grid-cols-[64px_1fr_auto] gap-4 py-5">
-                <div className="relative aspect-[4/5] bg-stone"><Image src={item.image} alt="" fill sizes="64px" className="object-cover" /></div>
+                <div className="relative aspect-[3/4] bg-stone"><Image src={item.image} alt="" fill sizes="64px" className="object-contain" /></div>
                 <div className="min-w-0">
                   <h3 className="text-xs font-semibold uppercase">{item.name}</h3>
-                  <p className="mt-2 text-[10px] leading-relaxed text-muted">{item.size} / {item.color.name}<br />Qty {item.quantity} × {formatINR(item.price)}</p>
+                  <p className="mt-2 text-[10px] leading-relaxed text-muted">Requested size {item.size} / {item.color.name}<br />Qty {item.quantity} × {formatINR(item.price)}</p>
                 </div>
-                <p className="text-xs font-medium tabular-nums">{formatINR(item.price * item.quantity)}</p>
+                <p className="text-xs font-medium tabular-nums">{formatINR(calculateLineTotal(item), "To confirm")}</p>
               </li>
             ))}
           </ul>
           <dl className="space-y-4 border-t border-ink/15 pt-5 text-xs">
-            <div className="flex justify-between"><dt className="text-muted">Subtotal</dt><dd className="tabular-nums">{formatINR(subtotal)}</dd></div>
+            <div className="flex justify-between"><dt className="text-muted">Subtotal</dt><dd className="tabular-nums">{formatINR(subtotal, "To confirm")}</dd></div>
             <div className="flex justify-between gap-3"><dt className="text-muted">Shipping</dt><dd className="text-right">Confirmed on WhatsApp</dd></div>
           </dl>
           <div className="mt-5 flex items-end justify-between border-t border-ink/20 pt-5">
             <div><p className="text-sm font-semibold uppercase">Product total</p><p className="mt-1 text-[9px] text-muted">Delivery not included unless confirmed</p></div>
-            <p className="text-xl font-semibold tabular-nums">{formatINR(subtotal)}</p>
+            <p className="text-xl font-semibold tabular-nums">{formatINR(subtotal, "To confirm")}</p>
           </div>
+          {subtotal === null && <p className="mt-5 text-xs leading-6 text-muted">Product prices are awaiting confirmation, so no monetary total is quoted. Requested sizes, pictured colours and stock must also be confirmed by the team.</p>}
           {!isBuyNow && <Link href="/cart" className="mt-5 inline-block text-[10px] uppercase tracking-[0.1em] text-muted underline underline-offset-4">Edit bag</Link>}
         </aside>
       </div>
