@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
   },
   poweredByHeader: false,
+  trailingSlash: true,
   allowedDevOrigins: ["*.e2b.app"],
 };
 
