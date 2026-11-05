@@ -32,7 +32,7 @@ export function DeveloperCredit({
           href={href}
           target="_blank"
           rel="noreferrer noopener"
-          aria-label={`${label} — opens in a new tab`}
+          aria-label="Visit WEBPI — the digital studio behind this website"
           className={`border-b border-chalk/25 pb-px transition-colors duration-300 hover:border-chalk/60 focus-visible:outline-chalk ${nameClasses}`}
         >
           {label}

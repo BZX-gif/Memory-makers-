@@ -29,7 +29,7 @@ export const storeConfig = {
     // name clickable. Leave it empty until a real URL is confirmed — the name then renders
     // as plain text, so no invented destination is ever shipped.
     label: "WEBPI",
-    url: "",
+    url: "https://webpi-lovat.vercel.app/",
   },
   shipping: {
     // Store policy: shipping is free on every order.
