@@ -25,7 +25,7 @@ See **[the complete photo-by-photo migration report](docs/PRODUCT_MIGRATION.md)*
 - Configured scarcity labels per product (`ONLY 12 LEFT`, `ONLY 5 LEFT`, `LIMITED DROP`, `SELLING FAST`) derived from manual stock counts; quantities cannot exceed configured stock.
 - No payment collection, fake confirmation, reviews, trust badges, live-inventory claims or newsletter backend.
 - Responsive images, local fonts, reduced-motion support, semantic controls, metadata, Open Graph, sitemap, robots rules, loading/error/not-found pages.
-- 140 unit/rendering tests for original-asset preservation, catalogue integrity, filtering, variants, the pricing table (1–10 tees), cart/checkout/WhatsApp parity, stock caps, cart recovery, validation, order drafts, references and WhatsApp formatting.
+- 141 unit/rendering tests for original-asset preservation, catalogue integrity, filtering, variants, the pricing table (1–10 tees), cart/checkout/WhatsApp parity, stock caps, cart recovery, validation, order drafts, references and WhatsApp formatting.
 
 ## Technology
 
@@ -190,9 +190,9 @@ docs/
 
 ## Verification
 
-The implementation passes **140 tests across 11 files**, strict TypeScript checking and an optimized production build with all 13 product routes prerendered. Tests cover original/copy checksums, catalogue mapping, colour-specific galleries/thumbnails, search/sorting, the 1–10 tee pricing table (`₹600 → ₹4,800 subtotal, −₹600 once, ₹4,200 final`), stock caps, persisted recovery, invalid checkout input, the exact WhatsApp order format, final-amount parity between the cart, checkout and message, order references, the add-to-bag notice and the drawer/cart breakdowns.
+The implementation passes **141 tests across 11 files**, strict TypeScript checking and an optimized production build with all 13 product routes prerendered. Tests cover original/copy checksums, catalogue mapping, colour-specific galleries/thumbnails, search/sorting, the 1–10 tee pricing table (`₹600 → ₹4,800 subtotal, −₹600 once, ₹4,200 final`), stock caps, persisted recovery, invalid checkout input, the exact WhatsApp order format, final-amount parity between the cart, checkout and message, order references, the add-to-bag notice and the drawer/cart breakdowns.
 
-An automated Chromium check against the production build also passed **12 scenario groups**, including desktop and 375/320 px mobile layouts, cart refresh/variants, Buy Now isolation, validation, handoff recovery/copying and mobile navigation. All 15 direct public asset URLs and all 15 Next.js optimized image URLs returned HTTP 200; there were no uncaught JavaScript or asset-load errors. This is local production verification, not a claim of deployment to Vercel or a real WhatsApp send. See the migration report for details.
+This round's verification also started the production server and checked every route (`/`, `/shop`, `/cart`, `/checkout`, `/shipping`, all product pages) for HTTP 200 and for the ₹600 / ₹1,200 / stock-label / free-shipping markup. The cart drawer, add-to-bag notice, cart page and shared breakdown were rendered and asserted with seeded cart states (1, 4 and 8 tees, empty bag, mobile-width panel classes). No headless browser was available in this environment, so the pixel-level mobile layout and real WhatsApp send should still be spot-checked once in a phone browser; earlier 375/320 px checks were made against the previous build.
 
 For release, repeat these browser journeys with the owner's real configuration:
 
