@@ -4,6 +4,8 @@ import { motion, useReducedMotion } from "framer-motion";
 import { ArrowDown, ArrowRight, ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { heroProduct } from "@/data/products";
+import { getProductImageAlt } from "@/lib/products";
 
 export function Hero() {
   const reduceMotion = useReducedMotion();
@@ -18,8 +20,8 @@ export function Hero() {
       <div className="grid lg:min-h-[calc(100svh-113px)] lg:grid-cols-12">
         <div className="relative flex flex-col justify-between px-5 py-8 sm:px-8 sm:py-10 lg:col-span-7 lg:px-12 lg:py-12">
           <motion.div {...enter(0)} className="flex items-center justify-between border-b border-ink/20 pb-4">
-            <p className="eyebrow">MM / Originals — 001</p>
-            <p className="hidden text-[10px] uppercase tracking-[0.15em] text-muted sm:block">An expression in every edition</p>
+            <p className="eyebrow">MM / The photographed collection</p>
+            <p className="hidden text-[10px] uppercase tracking-[0.15em] text-muted sm:block">Wear your fandom</p>
           </motion.div>
 
           <div className="py-10 sm:py-12 lg:py-8">
@@ -28,7 +30,7 @@ export function Hero() {
               <span className="font-serif font-normal italic tracking-[-0.045em]">Memories.</span>
             </motion.h1>
             <motion.p {...enter(0.16)} className="mt-7 max-w-md text-[15px] leading-relaxed text-muted sm:mt-9 sm:text-base">
-              Not just another T-shirt. An expression of who you are.
+              Character graphics. Familiar stories. Find your expression in the photographed collection.
             </motion.p>
           </div>
 
@@ -50,20 +52,24 @@ export function Hero() {
           initial={reduceMotion ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1.1 }}
-          className="relative min-h-[72svh] overflow-hidden bg-[#d6d0c4] sm:min-h-[85svh] lg:col-span-5 lg:min-h-0"
+          className="overflow-hidden bg-ink text-chalk lg:col-span-5"
         >
-          <Image
-            src="/images/campaign-hero.jpg"
-            alt="Model wearing the black Memory Makers After Hours graphic T-shirt in a daylight studio"
-            fill
-            priority
-            sizes="(max-width: 1024px) 100vw, 42vw"
-            className="object-cover object-center"
-          />
-          <div className="absolute inset-x-0 bottom-0 flex items-end justify-between bg-gradient-to-t from-ink/55 to-transparent p-5 pt-20 text-chalk sm:p-7">
-            <p className="eyebrow">Campaign 001<br /><span className="font-normal normal-case tracking-normal text-chalk/70">After Hours / Washed Black</span></p>
-            <p className="font-serif text-xl italic">Campaign · 2026</p>
-          </div>
+          <Link href={`/product/${heroProduct.slug}`} className="group block" aria-label={`View ${heroProduct.name}`}>
+            <div className="relative aspect-[3/4]">
+              <Image
+                src={heroProduct.images[0]}
+                alt={getProductImageAlt(heroProduct, heroProduct.images[0])}
+                fill
+                priority
+                sizes="(max-width: 1024px) 100vw, 42vw"
+                className="object-contain"
+              />
+            </div>
+            <div className="flex items-center justify-between gap-4 border-t border-chalk/20 p-5 sm:p-7">
+              <p className="eyebrow">From the collection<br /><span className="font-normal normal-case tracking-normal text-chalk/70">{heroProduct.name}</span></p>
+              <ArrowUpRight size={24} strokeWidth={1.3} className="shrink-0 transition-transform group-hover:-translate-y-1 group-hover:translate-x-1" aria-hidden="true" />
+            </div>
+          </Link>
         </motion.div>
       </div>
     </section>

@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { readOrderDraft } from "@/lib/order";
-import { formatINR } from "@/lib/utils";
+import { calculateLineTotal, formatINR } from "@/lib/utils";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
 import type { OrderDraft } from "@/types";
 
@@ -126,16 +126,17 @@ export function OrderHandoff({ reference }: { reference: string }) {
           <ul className="divide-y divide-ink/10">
             {draft.items.map((item) => (
               <li key={item.key} className="grid grid-cols-[56px_1fr_auto] gap-3 py-5">
-                <div className="relative aspect-[4/5] bg-stone"><Image src={item.image} alt="" fill sizes="56px" className="object-cover" /></div>
-                <div><h3 className="text-[11px] font-semibold uppercase">{item.name}</h3><p className="mt-2 text-[9px] leading-relaxed text-muted">{item.size} / {item.color.name}<br />Qty {item.quantity} × {formatINR(item.price)}</p></div>
-                <p className="text-[11px] font-medium tabular-nums">{formatINR(item.price * item.quantity)}</p>
+                <div className="relative aspect-[3/4] bg-stone"><Image src={item.image} alt="" fill sizes="56px" className="object-contain" /></div>
+                <div><h3 className="text-[11px] font-semibold uppercase">{item.name}</h3><p className="mt-2 text-[9px] leading-relaxed text-muted">Requested size {item.size} / {item.color.name}<br />Qty {item.quantity} × {formatINR(item.price)}</p></div>
+                <p className="text-[11px] font-medium tabular-nums">{formatINR(calculateLineTotal(item), "To confirm")}</p>
               </li>
             ))}
           </ul>
           <div className="flex items-end justify-between border-t border-ink/20 pt-5">
             <div><p className="text-xs font-semibold uppercase">Product total</p><p className="mt-1 text-[9px] text-muted">Shipping confirmed separately</p></div>
-            <p className="text-lg font-semibold tabular-nums">{formatINR(draft.total)}</p>
+            <p className="text-lg font-semibold tabular-nums">{formatINR(draft.total, "To confirm")}</p>
           </div>
+          {draft.total === null && <p className="mt-5 text-xs leading-6 text-muted">This request has unconfirmed prices. Ask the team to confirm the price, requested sizes and availability before agreeing to the order.</p>}
           <dl className="mt-6 space-y-2 border-t border-ink/15 pt-5 text-[10px] leading-relaxed text-muted">
             <div className="flex gap-3"><dt className="w-12 shrink-0">Name</dt><dd className="text-ink">{draft.customer.fullName}</dd></div>
             <div className="flex gap-3"><dt className="w-12 shrink-0">Mobile</dt><dd className="text-ink">{draft.customer.mobile}</dd></div>

@@ -1,6 +1,6 @@
 import { hasConfiguredWhatsApp, storeConfig } from "@/config/store";
 import type { CartItem, CheckoutCustomer } from "@/types";
-import { calculateSubtotal, clampQuantity, formatINR } from "@/lib/utils";
+import { calculateLineTotal, calculateSubtotal, clampQuantity, formatINR, isConfirmedPrice } from "@/lib/utils";
 import { normalizeIndianMobile } from "@/lib/validation";
 
 /** Keep user-entered content readable without allowing fake message sections. */
@@ -59,23 +59,27 @@ export function buildWhatsAppMessage({ reference, customer, items }: BuildMessag
 
     lines.push("", "ORDER DETAILS", "");
 
-    items.forEach((item, index) => {
-      const quantity = clampQuantity(item.quantity);
+    const requestedItems = items.map((item) => ({ ...item, quantity: clampQuantity(item.quantity) }));
+    requestedItems.forEach((item, index) => {
       lines.push(
         `${index + 1}. ${cleanMessageField(item.name, 100)}`,
-        `Size: ${cleanMessageField(item.size, 12)}`,
-        `Colour: ${cleanMessageField(item.color.name, 40)}`,
-        `Quantity: ${quantity}`,
-        `Price: ${formatINR(item.price)} each`,
-        `Item total: ${formatINR(item.price * quantity)}`,
+        `Product reference: ${cleanMessageField(item.productId, 40)}`,
+        `Size: ${cleanMessageField(item.size, 12)} (requested)`,
+        `Colour: ${cleanMessageField(item.color.name, 40)} (pictured)`,
+        `Quantity: ${item.quantity}`,
+        `Price: ${isConfirmedPrice(item.price) ? `${formatINR(item.price)} each` : "To be confirmed"}`,
+        `Item total: ${formatINR(calculateLineTotal(item), "To be confirmed")}`,
         "",
       );
     });
 
+    const subtotal = calculateSubtotal(requestedItems);
     lines.push(
-      `ORDER TOTAL: ${formatINR(calculateSubtotal(items))}`,
+      `ORDER TOTAL: ${formatINR(subtotal, "To be confirmed — product prices pending")}`,
+      "Shipping: To be confirmed separately.",
+      "Sizes, pictured colours and quantities are requests, not reserved stock.",
       "",
-      "Please confirm the availability and order.",
+      "Please confirm prices, sizes, availability and the order.",
       "",
       `Thank you for choosing ${storeConfig.brandName}.`,
     );

@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/product/ProductCard";
-import { ProductGallery } from "@/components/product/ProductGallery";
-import { ProductPurchase } from "@/components/product/ProductPurchase";
+import { ProductDetails } from "@/components/product/ProductDetails";
 import { getProductBySlug, getRelatedProducts, products } from "@/data/products";
 import { formatINR } from "@/lib/utils";
 
@@ -26,7 +25,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     openGraph: {
       title: `${product.name} — MEMORY MAKERS`,
       description: product.description,
-      images: [{ url: product.images[0], alt: `${product.name} graphic T-shirt` }],
+      images: [{ url: product.images[0], alt: product.name }],
     },
   };
 }
@@ -40,16 +39,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
   return (
     <>
       <div className="frame py-5">
-        <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-[9px] uppercase tracking-[0.13em] text-muted">
+        <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-2 text-[9px] uppercase tracking-[0.13em] text-muted">
           <Link href="/shop" className="transition-colors hover:text-ink">Shop</Link><span>/</span>
           <Link href={`/shop?category=${encodeURIComponent(product.category)}`} className="transition-colors hover:text-ink">{product.category}</Link><span>/</span>
           <span className="text-ink">{product.name}</span>
         </nav>
       </div>
-      <section className="frame grid gap-10 pb-20 lg:grid-cols-12 lg:gap-12 lg:pb-28" aria-label={product.name}>
-        <div className="lg:col-span-7"><ProductGallery product={product} /></div>
-        <div className="lg:col-span-5"><ProductPurchase key={product.id} product={product} /></div>
-      </section>
+      <ProductDetails key={product.id} product={product} />
 
       <section className="border-t border-ink/15 bg-chalk py-16 sm:py-24" aria-labelledby="related-heading">
         <div className="frame">

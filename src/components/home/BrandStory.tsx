@@ -2,6 +2,7 @@ import { ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Reveal } from "@/components/ui/Reveal";
+import { storeConfig } from "@/config/store";
 
 export function BrandStatement() {
   return (
@@ -14,8 +15,8 @@ export function BrandStatement() {
           </h2>
         </Reveal>
         <Reveal className="mt-12 grid gap-8 border-t border-chalk/20 pt-8 md:grid-cols-2 lg:ml-[35%]" delay={0.1}>
-          <p className="text-lg leading-relaxed sm:text-xl">Memory Makers turns art, words and ideas into wearable expressions.</p>
-          <p className="max-w-md text-sm leading-7 text-chalk/60">A line you needed to hear. An image you cannot forget. A moment that changed shape. We make space for all of it—without telling you what it should mean.</p>
+          <p className="text-lg leading-relaxed sm:text-xl">A character you recognise. A story that stays with you. An expression of your own.</p>
+          <p className="max-w-md text-sm leading-7 text-chalk/60">Explore character graphics across crew-neck tees, polos and stand-collar styles. Start with the artwork that feels like you.</p>
         </Reveal>
       </div>
     </section>
@@ -25,27 +26,26 @@ export function BrandStatement() {
 export function BrandStory() {
   return (
     <section id="story" className="frame grid py-20 sm:py-28 lg:grid-cols-12 lg:gap-12" aria-labelledby="story-heading">
-      <Reveal className="relative aspect-[4/3] overflow-hidden bg-stone lg:col-span-7">
+      <Reveal className="relative aspect-square overflow-hidden bg-white lg:col-span-7">
         <Image
-          src="/images/studio-story.jpg"
-          alt="T-shirt artwork, paper sketches and fabric arranged on a creative studio table"
+          src={storeConfig.brandImage}
+          alt="Supplied MM Wearable logo: black MM monogram above the word Wearable"
           fill
           sizes="(max-width: 1024px) 100vw, 58vw"
-          className="object-cover"
+          className="object-contain"
         />
-        <p className="absolute bottom-4 left-4 bg-paper px-3 py-2 text-[9px] uppercase tracking-[0.17em]">Behind the marks / Studio notes</p>
       </Reveal>
       <Reveal className="flex flex-col justify-center pt-10 lg:col-span-5 lg:pt-0" delay={0.12}>
-        <p className="eyebrow text-muted">03 / The story behind the shirt</p>
+        <p className="eyebrow text-muted">03 / The stories you wear</p>
         <h2 id="story-heading" className="mt-6 text-[clamp(2.8rem,5vw,5.5rem)] font-semibold uppercase leading-[0.9] tracking-[-0.055em]">
-          Every mark<br />starts <span className="font-serif font-normal normal-case italic tracking-normal">somewhere.</span>
+          Find your<br /><span className="font-serif font-normal normal-case italic tracking-normal">connection.</span>
         </h2>
-        <p className="mt-7 text-sm leading-7 text-muted">We start with things worth remembering: overheard sentences, unfamiliar places, familiar feelings. Then we strip them down, draw them out and give them a new life on cloth.</p>
+        <p className="mt-7 text-sm leading-7 text-muted">Browse the supplied product photographs, choose a pictured colour and request your preferred size. The team confirms the details with you before accepting an order.</p>
         <div className="mt-8 space-y-5 border-t border-ink/15 pt-7">
           {[
-            ["01", "Art before noise", "A clear idea leads. Everything unnecessary leaves."],
-            ["02", "Meaning stays personal", "The artwork speaks. You decide what it says."],
-            ["03", "Expression over uniform", "Made to join your story, not make everyone’s look the same."],
+            ["01", "See the actual collection", "The catalogue uses the supplied photographs, not demonstration designs."],
+            ["02", "Choose your expression", "Character graphics, distinct colours and three pictured collar styles."],
+            ["03", "Confirm before you commit", "Ask about price, fabric, fit and availability. No payment is taken here."],
           ].map(([number, title, copy]) => (
             <div key={number} className="grid grid-cols-[28px_1fr] gap-3">
               <span className="pt-0.5 text-[9px] text-muted">{number}</span>

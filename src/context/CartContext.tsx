@@ -24,7 +24,7 @@ import type { CartItem, Product, ProductColor } from "@/types";
 interface CartContextValue {
   items: CartItem[];
   itemCount: number;
-  subtotal: number;
+  subtotal: number | null;
   hydrated: boolean;
   buyNowItem: CartItem | null;
   addItem: (product: Product, size: string, color: ProductColor, quantity?: number) => boolean;

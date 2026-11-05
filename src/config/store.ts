@@ -11,6 +11,8 @@
 export const storeConfig = {
   brandName: "MEMORY MAKERS",
   tagline: "WEAR YOUR MEMORIES.",
+  // Supplied artwork, not a product or a change to the store's name.
+  brandImage: "/images/products/real/Picsart_26-09-26_18-26-44-656.jpg",
   whatsappNumber: "91XXXXXXXXXX", // TODO: BUSINESS OWNER — REPLACE THIS VALUE.
   currency: "INR",
   contact: {
@@ -31,5 +33,7 @@ export function hasConfiguredWhatsApp(number: string = storeConfig.whatsappNumbe
   return /^[1-9]\d{7,14}$/.test(number);
 }
 
+const vercelHost = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
 export const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "http://localhost:3000";
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
+  (vercelHost ? `https://${vercelHost}` : "http://localhost:3000");

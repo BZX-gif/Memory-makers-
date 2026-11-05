@@ -40,7 +40,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-ink/15 bg-paper/95 backdrop-blur-md">
       <div className="border-b border-ink/10 py-2 text-center">
-        <p className="eyebrow text-[9px]">Independent ideas · Made wearable · India</p>
+        <p className="eyebrow text-[9px]">Character graphics · Wear your fandom · India</p>
       </div>
       <div className="frame flex h-[72px] items-center justify-between lg:h-20">
         <Wordmark className="relative z-50" />
