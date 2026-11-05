@@ -2,6 +2,7 @@ import { ArrowUpRight, Instagram, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
 import { hasConfiguredWhatsApp, storeConfig } from "@/config/store";
+import { DeveloperCredit } from "./DeveloperCredit";
 import { Wordmark } from "./Wordmark";
 import { PRODUCT_CATEGORIES } from "@/types";
 
@@ -65,10 +66,13 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="frame border-t border-chalk/15 py-6">
+      <div className="frame border-t border-chalk/15 pb-7 pt-6 sm:pb-8">
         <div className="flex flex-col gap-4 text-[10px] uppercase tracking-[0.13em] text-chalk/55 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} Memory Makers. All rights reserved.</p>
           <p>Photo catalogue · No online payment · Order requests via WhatsApp</p>
+        </div>
+        <div className="mt-6 border-t border-chalk/10 pt-5 sm:mt-7 sm:pt-6">
+          <DeveloperCredit />
         </div>
       </div>
     </footer>

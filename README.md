@@ -25,7 +25,7 @@ See **[the complete photo-by-photo migration report](docs/PRODUCT_MIGRATION.md)*
 - Configured scarcity labels per product (`ONLY 12 LEFT`, `ONLY 5 LEFT`, `LIMITED DROP`, `SELLING FAST`) derived from manual stock counts; quantities cannot exceed configured stock.
 - No payment collection, fake confirmation, reviews, trust badges, live-inventory claims or newsletter backend.
 - Responsive images, local fonts, reduced-motion support, semantic controls, metadata, Open Graph, sitemap, robots rules, loading/error/not-found pages.
-- 141 unit/rendering tests for original-asset preservation, catalogue integrity, filtering, variants, the pricing table (1–10 tees), cart/checkout/WhatsApp parity, stock caps, cart recovery, validation, order drafts, references and WhatsApp formatting.
+- 145 unit/rendering tests for original-asset preservation, catalogue integrity, filtering, variants, the pricing table (1–10 tees), cart/checkout/WhatsApp parity, stock caps, cart recovery, validation, order drafts, references and WhatsApp formatting.
 
 ## Technology
 
@@ -102,11 +102,18 @@ In **`src/config/store.ts`**:
 - Optionally add a verified public business email.
 - Review the shipping information. Add verified shipping charges/timelines only when the owner supplies them; do not invent promises.
 
-### 4. Verified product and business policies
+### 4. Developer credit (WEBPI)
+
+The footer ends with a discreet "Designed & developed by WEBPI" signature. In **`src/config/store.ts`**:
+
+- `credit.label` is the credited name and `credit.url` is intentionally empty, so the name renders as plain text.
+- Paste a **verified** WEBPI website or social profile URL (`https://…`) into `credit.url` to make the name a quiet link. Anything that is not a valid http(s) URL is ignored and the name stays non-clickable, so no destination is ever invented.
+
+### 5. Verified product and business policies
 
 Before launch, complete the unconfirmed garment specifications with verified fit/material details and add any real return, exchange, privacy or terms policies required by the business. Neither garment claims nor policies have been fabricated. The original promotional text inside supplied photographs is preserved, but does not become a verified specification.
 
-### 5. Production URL
+### 6. Production URL
 
 Set `NEXT_PUBLIC_SITE_URL` to the final canonical URL in Vercel (or in `.env.local`) so sitemap and metadata URLs are correct:
 
