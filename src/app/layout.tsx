@@ -9,29 +9,44 @@ import { CartDrawer } from "@/components/cart/CartDrawer";
 import { AddToCartNotice } from "@/components/cart/AddToCartNotice";
 import { Footer } from "@/components/layout/Footer";
 import { siteUrl, storeConfig } from "@/config/store";
-import { heroProduct } from "@/data/products";
+
+const SHARE_SITE_URL = "https://memory-makers-nine.vercel.app/";
+const SHARE_IMAGE_URL = `${SHARE_SITE_URL}memory-makers-og.png`;
+const SHARE_TITLE = "Memory Makers | Wear the Vision";
+const SHARE_DESCRIPTION =
+  "Discover statement graphic T-shirts. Express your identity. Wear the vision. Explore Memory Makers.";
+const SHARE_TWITTER_DESCRIPTION =
+  "Discover statement graphic T-shirts. Express your identity. Wear the vision.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "MEMORY MAKERS — Wear Your Memories",
+    default: SHARE_TITLE,
     template: "%s — MEMORY MAKERS",
   },
-  description:
-    "Explore the MEMORY MAKERS photo catalogue of character graphic T-shirts, polos and stand-collar styles. Request prices, sizes and availability on WhatsApp.",
+  description: SHARE_DESCRIPTION,
   keywords: ["Memory Makers", "graphic T-shirts", "streetwear India", "anime graphics", "graphic polos"],
   openGraph: {
     type: "website",
+    url: SHARE_SITE_URL,
     siteName: storeConfig.brandName,
-    title: "MEMORY MAKERS — Wear Your Memories",
-    description: "Not just another T-shirt. An expression of who you are.",
-    images: [{ url: heroProduct.images[0], width: 960, height: 1280, alt: heroProduct.name }],
+    title: SHARE_TITLE,
+    description: SHARE_DESCRIPTION,
+    images: [
+      {
+        url: SHARE_IMAGE_URL,
+        width: 1536,
+        height: 1024,
+        type: "image/png",
+        alt: "Memory Makers official brand logo",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "MEMORY MAKERS — Wear Your Memories",
-    description: "Character graphics. Familiar stories. Explore the photographed collection.",
-    images: [heroProduct.images[0]],
+    title: SHARE_TITLE,
+    description: SHARE_TWITTER_DESCRIPTION,
+    images: [SHARE_IMAGE_URL],
   },
 };
 
