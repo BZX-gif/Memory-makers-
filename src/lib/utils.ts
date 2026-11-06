@@ -1,5 +1,16 @@
 import { MAX_LINE_QUANTITY } from "@/lib/pricing";
 
+/**
+ * Internal editing labels such as "Sample 07 — " are owner placeholders, not
+ * customer-facing product names. Customer surfaces and search snippets show
+ * the descriptive part only, while `product.name` stays untouched in the data
+ * layer so owner workflows and saved links keep working.
+ */
+export function getDisplayTitle(name: string): string {
+  const cleaned = name.replace(/^\s*sample\s+\d+\s*[—–-]\s*/i, "").trim();
+  return cleaned.length > 0 ? cleaned : name.trim();
+}
+
 export function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }

@@ -7,6 +7,7 @@ import { BundleProgress } from "@/components/cart/BundleProgress";
 import { OrderBreakdown } from "@/components/cart/OrderBreakdown";
 import { QuantityControl } from "@/components/ui/QuantityControl";
 import { useCart } from "@/context/CartContext";
+import { getDisplayTitle } from "@/lib/seo";
 import { calculateLineTotal, SHIPPING_LABEL } from "@/lib/pricing";
 import { formatINR } from "@/lib/utils";
 
@@ -59,12 +60,12 @@ export function CartView() {
             {items.map((item) => (
               <li key={item.key} className="grid grid-cols-[92px_1fr] gap-4 border-b border-ink/15 py-6 sm:grid-cols-[140px_1fr] sm:gap-6 sm:py-7">
                 <Link href={`/product/${item.slug}`} className="relative aspect-[3/4] self-start overflow-hidden bg-stone">
-                  <Image src={item.image} alt={item.name} fill sizes="(max-width: 640px) 92px, 140px" className="object-contain" />
+                  <Image src={item.image} alt={getDisplayTitle(item.name)} fill sizes="(max-width: 640px) 92px, 140px" className="object-contain" />
                 </Link>
                 <div className="flex min-w-0 flex-col justify-between gap-4">
                   <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:gap-3">
                     <div className="min-w-0">
-                      <Link href={`/product/${item.slug}`} className="text-[13px] font-semibold uppercase leading-snug tracking-[-0.02em] hover:underline sm:text-lg">{item.name}</Link>
+                      <Link href={`/product/${item.slug}`} className="text-[13px] font-semibold uppercase leading-snug tracking-[-0.02em] hover:underline sm:text-lg">{getDisplayTitle(item.name)}</Link>
                       <dl className="mt-2.5 space-y-1.5 text-[10px] uppercase tracking-[0.08em] text-muted sm:text-[11px]">
                         <div className="flex gap-2"><dt>Size:</dt><dd className="text-ink">{item.size}</dd></div>
                         <div className="flex items-center gap-2"><dt>Colour:</dt><dd className="flex items-center gap-1.5 text-ink"><span className="h-2.5 w-2.5 rounded-full border border-ink/20" style={{ backgroundColor: item.color.hex }} />{item.color.name}</dd></div>
@@ -74,8 +75,8 @@ export function CartView() {
                     <p className="shrink-0 text-sm font-semibold tabular-nums sm:text-base">{formatINR(calculateLineTotal(item))}</p>
                   </div>
                   <div className="flex items-center justify-between gap-3">
-                    <QuantityControl compact quantity={item.quantity} max={item.maxQuantity} onChange={(quantity) => updateQuantity(item.key, quantity)} label={`quantity for ${item.name}, size ${item.size}`} />
-                    <button type="button" onClick={() => removeItem(item.key)} className="inline-flex min-h-9 items-center gap-2 text-[9px] uppercase tracking-[0.1em] text-muted transition-colors hover:text-ink" aria-label={`Remove ${item.name}, size ${item.size}, ${item.color.name}`}>
+                    <QuantityControl compact quantity={item.quantity} max={item.maxQuantity} onChange={(quantity) => updateQuantity(item.key, quantity)} label={`quantity for ${getDisplayTitle(item.name)}, size ${item.size}`} />
+                    <button type="button" onClick={() => removeItem(item.key)} className="inline-flex min-h-9 items-center gap-2 text-[9px] uppercase tracking-[0.1em] text-muted transition-colors hover:text-ink" aria-label={`Remove ${getDisplayTitle(item.name)}, size ${item.size}, ${item.color.name}`}>
                       <Trash2 size={14} strokeWidth={1.4} aria-hidden="true" /><span className="hidden sm:inline">Remove</span>
                     </button>
                   </div>

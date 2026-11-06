@@ -1,5 +1,5 @@
 import type { Product, ProductCategory } from "@/types";
-import { isConfirmedPrice } from "@/lib/utils";
+import { getDisplayTitle, isConfirmedPrice } from "@/lib/utils";
 import { MAX_LINE_QUANTITY } from "@/lib/pricing";
 
 /** Editable request labels only. These are NOT verified stocked sizes. */
@@ -66,7 +66,7 @@ export function getProductImage(product: Product, colorName?: string) {
 
 export function getProductImageAlt(product: Product, image: string) {
   const color = product.availableColors.find((option) => option.image === image);
-  return `${product.name}${color ? ` in ${color.name.toLowerCase()}` : ""} — supplied front-view photograph`;
+  return `${getDisplayTitle(product.name)}${color ? ` in ${color.name.toLowerCase()}` : ""} — supplied front-view photograph of the ${product.category.toLowerCase()} piece`;
 }
 
 export type ProductSortOption = "featured" | "price-asc" | "price-desc" | "name";

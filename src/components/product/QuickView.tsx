@@ -9,7 +9,7 @@ import { QuantityControl } from "@/components/ui/QuantityControl";
 import { useCart } from "@/context/CartContext";
 import { getMaxQuantity, getProductImage, getSizeOptions, getStockScarcity, isProductSoldOut } from "@/lib/products";
 import { ORIGINAL_UNIT_PRICE, SHIPPING_LABEL, UNIT_PRICE } from "@/lib/pricing";
-import { formatINR } from "@/lib/utils";
+import { formatINR, getDisplayTitle } from "@/lib/utils";
 import type { Product, ProductColor } from "@/types";
 
 /**
@@ -88,7 +88,7 @@ export function QuickView({ product }: { product: Product }) {
         type="button"
         onClick={() => setOpen(true)}
         className="inline-flex min-h-9 items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-muted transition-colors hover:text-ink"
-        aria-label={`Quick view ${product.name}`}
+        aria-label={`Quick view ${getDisplayTitle(product.name)}`}
       >
         <Eye size={13} strokeWidth={1.5} aria-hidden="true" /> Quick view
       </button>
@@ -128,7 +128,7 @@ export function QuickView({ product }: { product: Product }) {
 
               <div className="grid sm:grid-cols-2">
                 <div className="relative aspect-[4/5] bg-stone sm:aspect-auto sm:min-h-[32rem]">
-                  <Image src={image} alt={`${product.name} in ${color.name}`} fill sizes="(max-width: 640px) 100vw, 380px" className="object-contain" />
+                  <Image src={image} alt={`${getDisplayTitle(product.name)} in ${color.name}`} fill sizes="(max-width: 640px) 100vw, 380px" className="object-contain" />
                   {scarcity && (
                     <span className="absolute left-4 top-4 border border-ink/25 bg-paper/95 px-2 py-1 text-[8px] font-semibold uppercase tracking-[0.16em]">
                       {scarcity.label}
@@ -139,7 +139,7 @@ export function QuickView({ product }: { product: Product }) {
                 <div className="flex flex-col p-5 sm:p-7">
                   <p className="eyebrow text-muted">{product.category}</p>
                   <h2 id={`quick-view-${product.id}`} className="mt-3 text-2xl font-semibold uppercase leading-[0.95] tracking-[-0.04em]">
-                    {product.name}
+                    {getDisplayTitle(product.name)}
                   </h2>
 
                   <p className="mt-4 flex flex-wrap items-baseline gap-2">

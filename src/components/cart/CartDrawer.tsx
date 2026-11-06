@@ -10,6 +10,7 @@ import { BundleProgress } from "@/components/cart/BundleProgress";
 import { OrderBreakdown } from "@/components/cart/OrderBreakdown";
 import { QuantityControl } from "@/components/ui/QuantityControl";
 import { useCart } from "@/context/CartContext";
+import { getDisplayTitle } from "@/lib/seo";
 import { calculateLineTotal, SHIPPING_LABEL } from "@/lib/pricing";
 import { formatINR } from "@/lib/utils";
 
@@ -133,18 +134,18 @@ export function CartDrawer() {
                     {items.map((item) => (
                       <li key={item.key} className="grid grid-cols-[68px_1fr] gap-4 py-4">
                         <Link href={`/product/${item.slug}`} onClick={closeDrawer} className="relative aspect-[3/4] self-start overflow-hidden bg-stone">
-                          <Image src={item.image} alt={item.name} fill sizes="68px" className="object-contain" />
+                          <Image src={item.image} alt={getDisplayTitle(item.name)} fill sizes="68px" className="object-contain" />
                         </Link>
                         <div className="min-w-0">
                           <div className="flex items-start justify-between gap-3">
                             <Link href={`/product/${item.slug}`} onClick={closeDrawer} className="text-[11px] font-semibold uppercase leading-snug tracking-[-0.01em] hover:underline">
-                              {item.name}
+                              {getDisplayTitle(item.name)}
                             </Link>
                             <button
                               type="button"
                               onClick={() => removeItem(item.key)}
                               className="-mr-1 -mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center text-muted transition-colors hover:text-ink"
-                              aria-label={`Remove ${item.name}, size ${item.size}, ${item.color.name}`}
+                              aria-label={`Remove ${getDisplayTitle(item.name)}, size ${item.size}, ${item.color.name}`}
                             >
                               <Trash2 size={13} strokeWidth={1.5} aria-hidden="true" />
                             </button>
@@ -162,7 +163,7 @@ export function CartDrawer() {
                               quantity={item.quantity}
                               max={item.maxQuantity}
                               onChange={(quantity) => updateQuantity(item.key, quantity)}
-                              label={`quantity for ${item.name}, size ${item.size}`}
+                              label={`quantity for ${getDisplayTitle(item.name)}, size ${item.size}`}
                             />
                             <p className="text-xs font-semibold tabular-nums">{formatINR(calculateLineTotal(item))}</p>
                           </div>
@@ -184,6 +185,9 @@ export function CartDrawer() {
                   >
                     View full bag
                   </Link>
+                  <p className="mt-3 text-center text-[9px] leading-relaxed tracking-[0.08em] text-muted">
+                    No payment on this site — your request is confirmed personally on WhatsApp.
+                  </p>
                 </footer>
               </>
             )}

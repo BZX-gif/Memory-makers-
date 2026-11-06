@@ -3,16 +3,30 @@ import { Suspense } from "react";
 import { ShopExperience } from "@/components/shop/ShopExperience";
 import { CatalogueNotice } from "@/components/ui/CatalogueNotice";
 import { heroProduct, products } from "@/data/products";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Shop the Collection",
-  description: "Explore the MEMORY MAKERS collection: graphic T-shirts, polos and stand-collar styles. Every tee is ₹600 (MRP ₹1,200) with free shipping and ₹600 off at four tees.",
-  openGraph: {
-    title: "Shop the Collection — MEMORY MAKERS",
-    description: "Find the piece that feels like you.",
-    images: [heroProduct.images[0]],
-  },
-};
+interface ShopPageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+/**
+ * Filtered views (?category=, ?q=) are personal, transient states of one page:
+ * they must not compete with the canonical /shop/ URL or the collection pages.
+ */
+export async function generateMetadata({ searchParams }: ShopPageProps): Promise<Metadata> {
+  const params = await searchParams;
+  const filtered = Object.values(params).some((value) => value !== undefined && value !== "");
+  return pageMetadata({
+    path: "/shop",
+    title: "Shop the Collection",
+    description: "Explore the MEMORY MAKERS collection: graphic T-shirts, polos and stand-collar styles. Every tee is ₹600 (MRP ₹1,200) with free shipping and ₹600 off at four tees.",
+    image: heroProduct.images[0],
+    imageAlt: "Graphic T-shirt from the photographed MEMORY MAKERS collection",
+    imageWidth: 960,
+    imageHeight: 1280,
+    noindex: filtered,
+  });
+}
 
 function ShopFallback() {
   return (

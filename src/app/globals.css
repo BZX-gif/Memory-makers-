@@ -103,6 +103,72 @@ img {
   scrollbar-width: none;
 }
 
+/* Quiet, on-brand scrollbars (WebKit + Firefox). */
+html {
+  scrollbar-color: rgba(17, 17, 15, 0.35) transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(17, 17, 15, 0.3);
+  border: 3px solid var(--paper);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(17, 17, 15, 0.55);
+}
+
+@layer components {
+  /* Editorial long-form copy for the journal, about and policy pages. */
+  .prose-editorial {
+    @apply text-[15px] leading-[1.85] text-muted sm:text-base sm:leading-[1.9];
+  }
+  .prose-editorial > * + * {
+    @apply mt-5;
+  }
+  .prose-editorial strong {
+    @apply font-semibold text-ink;
+  }
+  .prose-editorial h2 {
+    @apply mt-10 text-[clamp(1.6rem,3vw,2.4rem)] font-semibold uppercase leading-[1.02] tracking-[-0.04em] text-ink text-balance;
+  }
+  .prose-editorial h3 {
+    @apply mt-8 text-sm font-semibold uppercase tracking-[0.08em] text-ink;
+  }
+  .prose-editorial ul {
+    @apply space-y-3 border-l border-ink/20 pl-5;
+  }
+  .prose-editorial a {
+    @apply border-b border-ink/40 text-ink transition-colors hover:border-ink;
+  }
+
+  /* Numbered editorial index used by how-it-works and policy lists. */
+  .index-row {
+    @apply grid gap-3 border-b border-ink/15 py-7 sm:grid-cols-[56px_1fr] sm:gap-6;
+  }
+}
+
+/* Optical polish: headings and long sentences wrap like set type. */
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+p {
+  text-wrap: pretty;
+}
+
+/* Buttons acknowledge the press without fighting the palette. */
+.button-dark:active,
+.button-light:active {
+  transform: scale(0.985);
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

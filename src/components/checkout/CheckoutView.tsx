@@ -11,6 +11,7 @@ import { useCart } from "@/context/CartContext";
 import { saveOrderDraft } from "@/lib/order";
 import { calculateLineTotal, calculateOrderTotals, ORIGINAL_UNIT_PRICE, SHIPPING_LABEL } from "@/lib/pricing";
 import { formatINR } from "@/lib/utils";
+import { getDisplayTitle } from "@/lib/seo";
 import { BundleProgress } from "@/components/cart/BundleProgress";
 import { OrderBreakdown } from "@/components/cart/OrderBreakdown";
 import { hasCheckoutErrors, validateCheckout } from "@/lib/validation";
@@ -217,7 +218,7 @@ export function CheckoutView() {
               <li key={item.key} className="grid grid-cols-[64px_1fr_auto] gap-4 py-5">
                 <div className="relative aspect-[3/4] bg-stone"><Image src={item.image} alt="" fill sizes="64px" className="object-contain" /></div>
                 <div className="min-w-0">
-                  <h3 className="text-xs font-semibold uppercase">{item.name}</h3>
+                  <h3 className="text-xs font-semibold uppercase">{getDisplayTitle(item.name)}</h3>
                   <p className="mt-2 text-[10px] leading-relaxed text-muted">Size {item.size} / {item.color.name}<br />Qty {item.quantity} × {formatINR(item.price)} <span className="line-through">{formatINR(ORIGINAL_UNIT_PRICE)}</span></p>
                 </div>
                 <p className="text-xs font-medium tabular-nums">{formatINR(calculateLineTotal(item))}</p>

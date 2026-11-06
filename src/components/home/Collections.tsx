@@ -2,6 +2,7 @@ import { ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { categoryDescriptions, products } from "@/data/products";
+import { getCollectionByCategory } from "@/data/collections";
 import { PRODUCT_CATEGORIES } from "@/types";
 import { Reveal } from "@/components/ui/Reveal";
 
@@ -22,7 +23,7 @@ export function Collections() {
           if (!product) return null;
           return (
             <Reveal key={category} delay={index * 0.06}>
-              <Link href={`/shop?category=${encodeURIComponent(category)}`} className="group block">
+              <Link href={`/collections/${getCollectionByCategory(category)?.slug ?? "graphic-tees"}`} className="group block">
                 <div className="relative aspect-[3/4] overflow-hidden bg-stone">
                   <Image
                     src={product.images[0]}
