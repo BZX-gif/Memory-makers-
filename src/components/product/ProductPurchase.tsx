@@ -1,26 +1,38 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, Check, MessageCircle, ShoppingBag, Truck } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { ArrowRight, BadgeCheck, MessageCircle, ShieldCheck, ShoppingBag, Truck } from "lucide-react";
 import { useState } from "react";
 import { QuantityControl } from "@/components/ui/QuantityControl";
-import { useCart } from "@/context/CartContext";
-import { formatINR } from "@/lib/utils";
+import { formatINR, getDisplayTitle } from "@/lib/utils";
 import { getAvailabilityLabel, getMaxQuantity, getSizeOptions, getStockScarcity, isProductSoldOut } from "@/lib/products";
 import { BUNDLE_DISCOUNT, BUNDLE_QUANTITY, ORIGINAL_UNIT_PRICE, SHIPPING_LABEL, UNIT_PRICE } from "@/lib/pricing";
+import { useCart } from "@/context/CartContext";
 import type { Product, ProductColor } from "@/types";
 
-export function ProductPurchase({ product, color, onColorChange }: {
+interface ProductPurchaseProps {
   product: Product;
   color: ProductColor;
   onColorChange: (color: ProductColor) => void;
-}) {
-  const router = useRouter();
-  const { items, addItem, startBuyNow } = useCart();
-  const [size, setSize] = useState("");
+  size: string;
+  onSizeChange: (size: string) => void;
+  error: string;
+  onAdd: (quantity: number) => void;
+  onBuyNow: (quantity: number) => void;
+}
+
+export function ProductPurchase({
+  product,
+  color,
+  onColorChange,
+  size,
+  onSizeChange,
+  error,
+  onAdd,
+  onBuyNow,
+}: ProductPurchaseProps) {
+  const { items } = useCart();
   const [quantity, setQuantity] = useState(1);
-  const [error, setError] = useState("");
   const sizeOptions = getSizeOptions(product);
   const sizesUnconfirmed = product.availableSizes.length === 0;
   const soldOut = isProductSoldOut(product);
@@ -29,35 +41,6 @@ export function ProductPurchase({ product, color, onColorChange }: {
     .filter((item) => item.productId === product.id)
     .reduce((total, item) => total + item.quantity, 0);
   const maxQuantity = Math.max(1, Math.min(getMaxQuantity(product), getMaxQuantity(product) - inBag));
-
-  const validateSelection = () => {
-    if (soldOut) {
-      setError("This piece is currently sold out.");
-      return false;
-    }
-    if (!size || !sizeOptions.includes(size)) {
-      setError("Choose a size before continuing.");
-      return false;
-    }
-    setError("");
-    return true;
-  };
-
-  const handleAdd = () => {
-    if (!validateSelection()) return;
-    if (!addItem(product, size, color, quantity)) {
-      setError(inBag >= getMaxQuantity(product) ? "Your bag already holds every available piece of this design." : "This selection could not be added. Please review the available options.");
-    }
-  };
-
-  const handleBuyNow = () => {
-    if (!validateSelection()) return;
-    if (startBuyNow(product, size, color, quantity)) {
-      router.push("/checkout?mode=buy-now");
-    } else {
-      setError("This selection is not available for Buy Now.");
-    }
-  };
 
   return (
     <div className="lg:sticky lg:top-36">
@@ -68,7 +51,9 @@ export function ProductPurchase({ product, color, onColorChange }: {
           {getAvailabilityLabel(product)}
         </p>
       </div>
-      <h1 className="mt-5 text-[clamp(2.3rem,4vw,4.5rem)] font-semibold uppercase leading-[0.88] tracking-[-0.06em]">{product.name}</h1>
+      <h1 className="mt-5 text-[clamp(2.3rem,4vw,4.5rem)] font-semibold uppercase leading-[0.88] tracking-[-0.06em]">
+        {getDisplayTitle(product.name)}
+      </h1>
 
       <p className="mt-5 flex flex-wrap items-baseline gap-x-3 gap-y-2">
         <span className="text-2xl font-bold tabular-nums tracking-[-0.03em] sm:text-3xl">{formatINR(UNIT_PRICE)}</span>
@@ -87,12 +72,16 @@ export function ProductPurchase({ product, color, onColorChange }: {
         </p>
       )}
 
-      {product.name.startsWith("Sample ") && <p className="mt-4 text-[10px] uppercase tracking-[0.1em] text-muted">Editable descriptive label / Official name to confirm</p>}
+      {product.name.startsWith("Sample ") && (
+        <p className="mt-4 text-[10px] uppercase tracking-[0.1em] text-muted">
+          Descriptive name — the studio&rsquo;s official product name is still to be confirmed
+        </p>
+      )}
       <p className="mt-5 max-w-lg text-sm leading-7 text-muted">{product.description}</p>
 
       <div className="mt-9 border-t border-ink/20 pt-7">
         <div>
-          <fieldset disabled={soldOut} className="border-0 p-0">
+          <fieldset disabled={soldOut} className="border-0 p-0" id="size-selector">
             <legend className="eyebrow w-full">
               <span className="flex items-center justify-between gap-4">
                 <span>Select size <span className="text-muted">/ Required</span></span>
@@ -104,7 +93,7 @@ export function ProductPurchase({ product, color, onColorChange }: {
                 <button
                   key={option}
                   type="button"
-                  onClick={() => { setSize(option); setError(""); }}
+                  onClick={() => onSizeChange(option)}
                   aria-pressed={size === option}
                   className={`h-12 border text-xs font-medium transition-colors ${size === option ? "border-ink bg-ink text-chalk" : "border-ink/25 hover:border-ink"}`}
                 >
@@ -129,7 +118,7 @@ export function ProductPurchase({ product, color, onColorChange }: {
                 >
                   <span className="h-4 w-4 rounded-full border border-ink/20" style={{ backgroundColor: option.hex }} />
                   {option.name}
-                  {color.name === option.name && <Check size={12} aria-hidden="true" />}
+                  {color.name === option.name && <CheckIcon />}
                 </button>
               ))}
             </div>
@@ -153,16 +142,29 @@ export function ProductPurchase({ product, color, onColorChange }: {
           <p className="mt-6 border border-ink/20 p-4 text-xs leading-relaxed text-muted">This piece is sold out. Add to bag and Buy Now are disabled.</p>
         )}
 
-        <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-          <button type="button" onClick={handleAdd} disabled={soldOut} className="button-dark w-full">
+        <div id="purchase-cta" className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+          <button type="button" onClick={() => onAdd(quantity)} disabled={soldOut} className="button-dark w-full">
             <ShoppingBag size={15} strokeWidth={1.5} aria-hidden="true" /> Add to bag
           </button>
-          <button type="button" onClick={handleBuyNow} disabled={soldOut} className="button-light w-full">
+          <button type="button" onClick={() => onBuyNow(quantity)} disabled={soldOut} className="button-light w-full">
             Buy now <ArrowRight size={15} strokeWidth={1.5} aria-hidden="true" />
           </button>
         </div>
 
-        <p className="mt-5 flex items-start gap-2 text-[10px] leading-relaxed text-muted"><MessageCircle size={14} className="mt-0.5 shrink-0" strokeWidth={1.5} aria-hidden="true" /> Buy Now opens checkout for this piece only. Your existing bag stays saved.</p>
+        <ul className="mt-6 space-y-2 border-t border-ink/15 pt-5">
+          {[
+            [ShieldCheck, "No payment on this site — you pay only after the team confirms"],
+            [BadgeCheck, "Real photograph above; scarcity reflects the manual catalogue count"],
+            [MessageCircle, "Buy Now keeps your saved bag untouched"],
+          ].map(([Icon, label]) => {
+            const Glyph = Icon as typeof ShieldCheck;
+            return (
+              <li key={label as string} className="flex items-start gap-2 text-[10px] leading-relaxed text-muted">
+                <Glyph size={13} strokeWidth={1.6} className="mt-0.5 shrink-0" aria-hidden="true" /> {label as string}
+              </li>
+            );
+          })}
+        </ul>
 
         <div className="mt-8 border-t border-ink/20">
           <details className="group border-b border-ink/20 py-5" open>
@@ -178,5 +180,13 @@ export function ProductPurchase({ product, color, onColorChange }: {
         </div>
       </div>
     </div>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
   );
 }

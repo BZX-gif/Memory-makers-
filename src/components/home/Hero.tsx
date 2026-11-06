@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { heroProduct } from "@/data/products";
 import { getProductImageAlt } from "@/lib/products";
+import { productDisplayTitle } from "@/lib/seo";
 
 export function Hero() {
   const reduceMotion = useReducedMotion();
@@ -54,7 +55,7 @@ export function Hero() {
           transition={{ duration: 1.1 }}
           className="overflow-hidden bg-ink text-chalk lg:col-span-5"
         >
-          <Link href={`/product/${heroProduct.slug}`} className="group block" aria-label={`View ${heroProduct.name}`}>
+          <Link href={`/product/${heroProduct.slug}`} className="group block" aria-label={`View ${productDisplayTitle(heroProduct)}`}>
             <div className="relative aspect-[3/4]">
               <Image
                 src={heroProduct.images[0]}
@@ -66,7 +67,7 @@ export function Hero() {
               />
             </div>
             <div className="flex items-center justify-between gap-4 border-t border-chalk/20 p-5 sm:p-7">
-              <p className="eyebrow">From the collection<br /><span className="font-normal normal-case tracking-normal text-chalk/70">{heroProduct.name}</span></p>
+              <p className="eyebrow">From the collection<br /><span className="font-normal normal-case tracking-normal text-chalk/70">{productDisplayTitle(heroProduct)}</span></p>
               <ArrowUpRight size={24} strokeWidth={1.3} className="shrink-0 transition-transform group-hover:-translate-y-1 group-hover:translate-x-1" aria-hidden="true" />
             </div>
           </Link>

@@ -3,6 +3,7 @@ import { createCartItem } from "@/lib/cart";
 import { formatINR } from "@/lib/utils";
 import { calculateOrderTotals } from "@/lib/pricing";
 import { buildWhatsAppMessage, buildWhatsAppUrl, cleanMessageField, generateOrderReference } from "@/lib/whatsapp";
+import { getDisplayTitle } from "@/lib/utils";
 import { multiColorProduct, picturedProduct, testCustomer as customer } from "@/test/fixtures";
 import type { CartItem } from "@/types";
 
@@ -26,7 +27,7 @@ describe("WhatsApp order generation", () => {
       "",
       "ORDER DETAILS:",
       "",
-      `Product: ${picturedProduct.name}`,
+      `Product: ${getDisplayTitle(picturedProduct.name)} [${picturedProduct.slug}]`,
       "Size: M",
       "Color: Yellow",
       "Quantity: 1",
@@ -64,8 +65,8 @@ describe("WhatsApp order generation", () => {
 
   it("applies the discount once for a large order and prints every line", () => {
     const message = build([{ ...item, quantity: 4, maxQuantity: 10 }, { ...greyItem, quantity: 4, maxQuantity: 10 }]);
-    expect(message).toContain(`Product: ${picturedProduct.name}`);
-    expect(message).toContain(`Product: ${multiColorProduct.name}`);
+    expect(message).toContain(`Product: ${getDisplayTitle(picturedProduct.name)} [${picturedProduct.slug}]`);
+    expect(message).toContain(`Product: ${getDisplayTitle(multiColorProduct.name)} [${multiColorProduct.slug}]`);
     expect(message).toContain("Color: Grey");
     expect(message).toContain("Subtotal: ₹4,800");
     expect(message).toContain("Bundle Discount: -₹600");

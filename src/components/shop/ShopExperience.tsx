@@ -21,7 +21,7 @@ export function ShopExperience() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const reduceMotion = useReducedMotion();
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [sort, setSort] = useState<ProductSortOption>("featured");
   const [availableOnly, setAvailableOnly] = useState(false);
 
@@ -39,6 +39,16 @@ export function ShopExperience() {
     const params = new URLSearchParams(searchParams.toString());
     if (nextCategory === "All") params.delete("category");
     else params.set("category", nextCategory);
+    const suffix = params.toString();
+    router.replace(`/shop${suffix ? `?${suffix}` : ""}`, { scroll: false });
+  };
+
+  /** Keep search shareable (and the WebSite SearchAction target real). */
+  const updateQuery = (value: string) => {
+    setQuery(value);
+    const params = new URLSearchParams(searchParams.toString());
+    if (value.trim()) params.set("q", value.trim());
+    else params.delete("q");
     const suffix = params.toString();
     router.replace(`/shop${suffix ? `?${suffix}` : ""}`, { scroll: false });
   };
@@ -74,12 +84,12 @@ export function ShopExperience() {
               <input
                 type="search"
                 value={query}
-                onChange={(event) => setQuery(event.target.value)}
+                onChange={(event) => updateQuery(event.target.value)}
                 placeholder="Search artwork, colour or style"
                 className="h-11 w-full border-b border-ink/25 bg-transparent pl-7 pr-9 text-xs outline-none transition-colors placeholder:text-muted focus:border-ink"
               />
               {query && (
-                <button type="button" onClick={() => setQuery("")} className="absolute right-0 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center" aria-label="Clear search">
+                <button type="button" onClick={() => updateQuery("")} className="absolute right-0 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center" aria-label="Clear search">
                   <X size={15} />
                 </button>
               )}

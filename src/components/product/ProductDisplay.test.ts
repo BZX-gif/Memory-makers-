@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { CatalogueNotice } from "@/components/ui/CatalogueNotice";
+import { getDisplayTitle } from "@/lib/utils";
 import { CartProvider } from "@/context/CartContext";
 import { lowStockProduct, multiColorProduct, picturedProduct, soldOutProduct } from "@/test/fixtures";
 
@@ -19,7 +20,9 @@ const renderInCart = (node: ReactElement) =>
 describe("real-photo product presentation", () => {
   it("shows the ₹600 selling price against the ₹1,200 original on every card", () => {
     const html = renderInCart(createElement(ProductCard, { product: picturedProduct }));
-    expect(html).toContain(picturedProduct.name);
+    expect(html).toContain(getDisplayTitle(picturedProduct.name));
+    // Customer surfaces never leak the internal "Sample NN —" editing label.
+    expect(html).not.toContain("Sample 01 —");
     expect(html).toContain("photo_1_2026-11-05_14-26-42.jpg");
     expect(html).toContain("₹600");
     expect(html).toContain("₹1,200");

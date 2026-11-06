@@ -3,6 +3,7 @@ import type { CartItem, CheckoutCustomer } from "@/types";
 import { calculateLineTotal, calculateOrderTotals, SHIPPING_LABEL, UNIT_PRICE } from "@/lib/pricing";
 import { clampQuantity, formatINR } from "@/lib/utils";
 import { normalizeIndianMobile } from "@/lib/validation";
+import { getDisplayTitle } from "@/lib/seo";
 
 /** Keep user-entered content readable without allowing fake message sections. */
 export function cleanMessageField(value: unknown, maxLength = 240) {
@@ -70,7 +71,7 @@ export function buildWhatsAppMessage({ reference, customer, items }: BuildMessag
 
     orderItems.forEach((item) => {
       lines.push(
-        `Product: ${cleanMessageField(item.name, 100)}`,
+        `Product: ${cleanMessageField(getDisplayTitle(item.name), 100)} [${cleanMessageField(item.slug, 60)}]`,
         `Size: ${cleanMessageField(item.size, 12)}`,
         `Color: ${cleanMessageField(item.color.name, 40)}`,
         `Quantity: ${item.quantity}`,

@@ -61,7 +61,69 @@ npm run test:watch # watch unit tests
 npm run build      # optimized production build
 npm start          # serve the production build on 0.0.0.0:3000
 npm audit          # check dependency advisories
+bash scripts/generate-brand-assets.sh   # regenerate icons + share cards from supplied assets
 ```
+
+## SEO, trust & design system
+
+The storefront ships as a complete, indexable small-business site — not a single
+landing page. Everything below is generated from owner-editable data; nothing is
+invented.
+
+### Search foundations
+
+- One metadata factory (`src/lib/seo.ts`) produces canonical URLs, Open Graph,
+  Twitter cards and robots rules for every page. Canonical paths always carry
+  the trailing slash that `next.config.ts` routes with.
+- JSON-LD structured data on every surface: `Organization` + `WebSite`
+  (with a real `/shop/?q=` SearchAction) site-wide; `Product` + `Offer` +
+  `BreadcrumbList` on product pages; `CollectionPage` + `ItemList` on
+  collection pages; `FAQPage`, `Article`, `HowTo`, `ContactPage`,
+  `AboutPage` and `PrivacyPolicy`-typed pages elsewhere.
+- Product offers publish the shared pricing module's numbers (₹600, INR,
+  free-shipping `shippingDetails`) and map catalogue state honestly:
+  `InStock`, `OutOfStock`, or `LimitedAvailability` for "availability to
+  confirm". Ratings/reviews are **never** synthesised.
+- Indexable collection landing pages at `/collections/<slug>` (crew tees,
+  polos, stand collars) with editorial copy; filtered `/shop?…` views are
+  `noindex` so they cannot cannibalise them.
+- `/journal` with three evergreen guides (styling, print care, silhouettes)
+  for topical authority; `/about`, `/faq`, `/size-guide`, `/contact`,
+  `/privacy` and `/shipping` complete the trust graph and the sitemap
+  (29 URLs, all with `lastModified`).
+- PWA manifest + derived icons (`public/icons/*`, `apple-icon.png`,
+  `favicon.ico`) and 1200×630 share cards (`public/og/*`) — all regenerated
+  from the **supplied** logo and photographs by
+  `scripts/generate-brand-assets.sh` (ImageMagick + `scripts/woff_to_ttf.py`
+  for the brand serif). No artwork is invented.
+- Personal surfaces (`/cart`, `/checkout`, `/order/…`) stay `noindex`;
+  `robots.txt` also blocks `/checkout`, `/order/` and `/api/`.
+
+### Trust & conversion design
+
+- Internal editing labels (`Sample NN — …`) are stripped from every
+  customer-facing surface by `getDisplayTitle()`; `product.name` remains the
+  owner's editable record and WhatsApp messages keep the stable slug for
+  catalogue mapping.
+- Honest trust signals only: free shipping, the fixed price table, real
+  unchanged photographs, manual stock counts, and personal WhatsApp
+  confirmation (`TrustStrip`, `OrderSteps`, product-page assurance list).
+  No fake badges, countdowns, reviews or delivery promises.
+- Editorial polish: film-grain overlay, scroll-progress rule in the header,
+  rotating factual announcement line, hover second photograph on multi-photo
+  cards, tap-to-zoom gallery with keyboard arrows, sticky mobile buy bar,
+  back-to-top control, campaign/studio imagery band, on-brand scrollbars and
+  balanced headline wrapping — all reduced-motion aware.
+- Fonts are self-hosted subsets (Archivo variable `standard`, Instrument
+  Serif latin 400 + italic) and heavy icon/motion packages are tree-shaken
+  via `optimizePackageImports`.
+
+### Owner growth checklist
+
+See **[docs/GROWTH_PLAYBOOK.md](docs/GROWTH_PLAYBOOK.md)** for the ordered
+post-launch list: canonical URL env, Search Console submission, name and
+policy confirmation, real review pipeline, WhatsApp Business verification and
+the exact files each change touches.
 
 ## Required owner configuration
 
@@ -84,7 +146,7 @@ Use international format with **digits only**: country code followed by the numb
 
 Edit **`src/data/products.ts`**. The real-photo records and galleries are already integrated; do not replace them with fictional inventory.
 
-- **Names:** `Sample NN — …` is an editable visual description, not an official business name. Replace it with a verified product name when available. The portrait in photo 11 has intentionally generic wording until its character identity is confirmed.
+- **Names:** `Sample NN — …` is an editable visual description, not an official business name. Replace it with a verified product name when available. The portrait in photo 11 has intentionally generic wording until its character identity is confirmed. Customers never see the `Sample NN —` prefix: every card, page title, snippet, cart line and WhatsApp message renders `getDisplayTitle(name)`, while the data layer keeps your exact label and messages keep the stable slug for mapping.
 - **Prices:** every product is `price: 600` with `compareAtPrice: 1200`. The selling price is fixed by the store policy in `src/lib/pricing.ts`; do not hardcode amounts in components. Every surface (cards, product page, quick view, drawer, cart, checkout, saved order, WhatsApp message) reads the same function.
 - **Stock:** `stock` is a manually configured count shown as a scarcity label and used to cap order quantity. `stockLabel` overrides the derived label (for example `SELLING FAST`). Set `stock: 0` or `inStock: false` to sell a piece out. These are catalogue values, not live inventory — there is no warehouse integration, and the site never decrements stock automatically.
 - **Availability:** `inStock: true` allows Add to bag/Buy Now, `false` disables both, and `null` keeps a request possible while showing "Availability to confirm". This remains a manual catalogue, not a live inventory system.

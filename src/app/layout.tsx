@@ -1,64 +1,61 @@
 import type { Metadata, Viewport } from "next";
-import "@fontsource-variable/archivo";
-import "@fontsource/instrument-serif/400.css";
-import "@fontsource/instrument-serif/400-italic.css";
+import "@fontsource-variable/archivo/standard.css";
+import "@fontsource/instrument-serif/latin-400.css";
+import "@fontsource/instrument-serif/latin-400-italic.css";
 import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import { Header } from "@/components/layout/Header";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { AddToCartNotice } from "@/components/cart/AddToCartNotice";
 import { Footer } from "@/components/layout/Footer";
+import { BackToTop } from "@/components/ui/BackToTop";
+import { GrainOverlay } from "@/components/ui/GrainOverlay";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { organizationSchema, pageMetadata, webSiteSchema } from "@/lib/seo";
 import { siteUrl, storeConfig } from "@/config/store";
 
-const SHARE_SITE_URL = "https://memory-makers-nine.vercel.app/";
-const SHARE_IMAGE_URL = `${SHARE_SITE_URL}memory-makers-og.png`;
-const SHARE_TITLE = "Memory Makers | Wear the Vision";
-const SHARE_DESCRIPTION =
-  "Discover statement graphic T-shirts. Express your identity. Wear the vision. Explore Memory Makers.";
-const SHARE_TWITTER_DESCRIPTION =
-  "Discover statement graphic T-shirts. Express your identity. Wear the vision.";
-
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: {
-    default: SHARE_TITLE,
-    template: "%s — MEMORY MAKERS",
-  },
-  description: SHARE_DESCRIPTION,
-  keywords: ["Memory Makers", "graphic T-shirts", "streetwear India", "anime graphics", "graphic polos"],
-  openGraph: {
-    type: "website",
-    url: SHARE_SITE_URL,
-    siteName: storeConfig.brandName,
-    title: SHARE_TITLE,
-    description: SHARE_DESCRIPTION,
-    images: [
-      {
-        url: SHARE_IMAGE_URL,
-        width: 1536,
-        height: 1024,
-        type: "image/png",
-        alt: "Memory Makers official brand logo",
-      },
+  ...pageMetadata({
+    path: "/",
+    description: `${storeConfig.brandName} — ${storeConfig.tagline} Character graphic T-shirts, polos and stand-collar tees photographed in the real collection. ₹600 per tee, free shipping across India, orders confirmed personally on WhatsApp.`,
+    keywords: [
+      "Memory Makers",
+      "anime graphic t-shirts India",
+      "graphic tees online India",
+      "anime streetwear India",
+      "graphic polo shirts",
+      "stand collar t-shirts",
+      "MM Wearable",
     ],
+  }),
+  title: {
+    default: `${storeConfig.brandName} | ${storeConfig.tagline} Anime Graphic Tees India`,
+    template: `%s — ${storeConfig.brandName}`,
   },
-  twitter: {
-    card: "summary_large_image",
-    title: SHARE_TITLE,
-    description: SHARE_TWITTER_DESCRIPTION,
-    images: [SHARE_IMAGE_URL],
+  metadataBase: new URL(siteUrl),
+  applicationName: storeConfig.brandName,
+  authors: [{ name: storeConfig.brandName }],
+  creator: storeConfig.brandName,
+  publisher: storeConfig.brandName,
+  formatDetection: { telephone: false, address: false, email: false },
+  category: "shopping",
+  other: {
+    "og:locale:alternate": "en_US",
   },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#f3f1eb",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f3f1eb" },
+    { media: "(prefers-color-scheme: dark)", color: "#11110f" },
+  ],
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" data-scroll-behavior="smooth">
+    <html lang="en-IN" data-scroll-behavior="smooth">
       <body>
         <CartProvider>
           <a
@@ -67,11 +64,14 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           >
             Skip to content
           </a>
+          <GrainOverlay />
           <Header />
           <main id="main-content">{children}</main>
           <Footer />
           <CartDrawer />
           <AddToCartNotice />
+          <BackToTop />
+          <JsonLd data={[organizationSchema(), webSiteSchema()]} />
         </CartProvider>
       </body>
     </html>

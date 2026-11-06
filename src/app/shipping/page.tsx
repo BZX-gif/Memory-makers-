@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { MessageCircle } from "lucide-react";
 import { storeConfig } from "@/config/store";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Shipping & Orders",
-  description: "How MEMORY MAKERS order requests, availability, delivery and WhatsApp confirmation work.",
-};
+export const metadata: Metadata = pageMetadata({
+  path: "/shipping",
+  title: "Shipping & Orders — How WhatsApp Ordering Works",
+  description: "How MEMORY MAKERS order requests, availability, delivery and WhatsApp confirmation work. Free shipping on every order; no payment is collected on this site.",
+});
 
 export default function ShippingPage() {
   return (

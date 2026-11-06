@@ -9,6 +9,7 @@ import { useCart } from "@/context/CartContext";
 import { readOrderDraft } from "@/lib/order";
 import { calculateLineTotal, SHIPPING_LABEL } from "@/lib/pricing";
 import { formatINR } from "@/lib/utils";
+import { getDisplayTitle } from "@/lib/seo";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
 import type { OrderDraft } from "@/types";
 
@@ -128,7 +129,7 @@ export function OrderHandoff({ reference }: { reference: string }) {
             {draft.items.map((item) => (
               <li key={item.key} className="grid grid-cols-[56px_1fr_auto] gap-3 py-5">
                 <div className="relative aspect-[3/4] bg-stone"><Image src={item.image} alt="" fill sizes="56px" className="object-contain" /></div>
-                <div><h3 className="text-[11px] font-semibold uppercase">{item.name}</h3><p className="mt-2 text-[9px] leading-relaxed text-muted">Size {item.size} / {item.color.name}<br />Qty {item.quantity} × {formatINR(item.price)}</p></div>
+                <div><h3 className="text-[11px] font-semibold uppercase">{getDisplayTitle(item.name)}</h3><p className="mt-2 text-[9px] leading-relaxed text-muted">Size {item.size} / {item.color.name}<br />Qty {item.quantity} × {formatINR(item.price)}</p></div>
                 <p className="text-[11px] font-medium tabular-nums">{formatINR(calculateLineTotal(item))}</p>
               </li>
             ))}
